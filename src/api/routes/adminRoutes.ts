@@ -12,7 +12,7 @@ const redditCrawler = new RedditCrawlerService();
 const wordpressCrawler = new WordPressCrawlerService();
 
 // Reddit Sources Management
-router.get('/reddit/sources', async (req: Request, res: Response) => {
+router.get('/reddit/sources', async (_req: Request, res: Response) => {
   try {
     const sources = await redditSourceRepo.findAll();
     res.json({ success: true, data: sources });
@@ -30,19 +30,21 @@ router.post('/reddit/sources', async (req: Request, res: Response) => {
     const { subredditName, description, crawlIntervalHours } = req.body;
     
     if (!subredditName) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Subreddit name is required'
       });
+      return;
     }
 
     // Check if source already exists
     const existing = await redditSourceRepo.existsBySubredditName(subredditName);
     if (existing) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Reddit source already exists'
       });
+      return;
     }
 
     const source = await redditSourceRepo.create({
@@ -73,10 +75,11 @@ router.put('/reddit/sources/:id', async (req: Request, res: Response) => {
     
     const source = await redditSourceRepo.update(id, updates);
     if (!source) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'Reddit source not found'
       });
+      return;
     }
 
     res.json({ success: true, data: source });
@@ -95,10 +98,11 @@ router.delete('/reddit/sources/:id', async (req: Request, res: Response) => {
     const deleted = await redditSourceRepo.delete(id);
     
     if (!deleted) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'Reddit source not found'
       });
+      return;
     }
 
     res.json({ success: true, message: 'Reddit source deleted' });
@@ -112,7 +116,7 @@ router.delete('/reddit/sources/:id', async (req: Request, res: Response) => {
 });
 
 // WordPress Sources Management
-router.get('/wordpress/sources', async (req: Request, res: Response) => {
+router.get('/wordpress/sources', async (_req: Request, res: Response) => {
   try {
     const sources = await wordpressSourceRepo.findAll();
     res.json({ success: true, data: sources });
@@ -130,19 +134,21 @@ router.post('/wordpress/sources', async (req: Request, res: Response) => {
     const { siteUrl, siteName, description, apiKey, crawlIntervalHours } = req.body;
     
     if (!siteUrl || !siteName) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Site URL and site name are required'
       });
+      return;
     }
 
     // Check if source already exists
     const existing = await wordpressSourceRepo.existsBySiteUrl(siteUrl);
     if (existing) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'WordPress source already exists'
       });
+      return;
     }
 
     const source = await wordpressSourceRepo.create({
@@ -175,10 +181,11 @@ router.put('/wordpress/sources/:id', async (req: Request, res: Response) => {
     
     const source = await wordpressSourceRepo.update(id, updates);
     if (!source) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'WordPress source not found'
       });
+      return;
     }
 
     res.json({ success: true, data: source });
@@ -197,10 +204,11 @@ router.delete('/wordpress/sources/:id', async (req: Request, res: Response) => {
     const deleted = await wordpressSourceRepo.delete(id);
     
     if (!deleted) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'WordPress source not found'
       });
+      return;
     }
 
     res.json({ success: true, message: 'WordPress source deleted' });
@@ -214,7 +222,7 @@ router.delete('/wordpress/sources/:id', async (req: Request, res: Response) => {
 });
 
 // Crawler Management
-router.post('/crawl/full', async (req: Request, res: Response) => {
+router.post('/crawl/full', async (_req: Request, res: Response) => {
   try {
     const result = await crawlerService.runFullCrawl();
     res.json({ success: true, data: result });
@@ -227,7 +235,7 @@ router.post('/crawl/full', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/crawl/reddit', async (req: Request, res: Response) => {
+router.post('/crawl/reddit', async (_req: Request, res: Response) => {
   try {
     const result = await redditCrawler.crawlAllActiveSources();
     res.json({ success: true, data: result });
@@ -254,7 +262,7 @@ router.post('/crawl/reddit/:id', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/crawl/wordpress', async (req: Request, res: Response) => {
+router.post('/crawl/wordpress', async (_req: Request, res: Response) => {
   try {
     const result = await wordpressCrawler.crawlAllActiveSources();
     res.json({ success: true, data: result });
@@ -281,7 +289,7 @@ router.post('/crawl/wordpress/:id', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/crawl/market', async (req: Request, res: Response) => {
+router.post('/crawl/market', async (_req: Request, res: Response) => {
   try {
     const result = await crawlerService.runMarketDataUpdate();
     res.json({ success: true, data: result });
@@ -295,7 +303,7 @@ router.post('/crawl/market', async (req: Request, res: Response) => {
 });
 
 // System Statistics
-router.get('/stats', async (req: Request, res: Response) => {
+router.get('/stats', async (_req: Request, res: Response) => {
   try {
     const [redditSources, wordpressSources] = await Promise.all([
       redditSourceRepo.findActiveSources(),

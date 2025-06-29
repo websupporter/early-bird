@@ -28,7 +28,6 @@ export class MorningBriefingService {
   async generateMorningBriefing(options: BriefingGenerationOptions = {}): Promise<MorningBriefing> {
     const {
       hoursBack = 24,
-      includeWeekendData = true,
       minContentThreshold = 10,
       maxContentAnalyzed = 500
     } = options;
@@ -246,7 +245,7 @@ export class MorningBriefingService {
   }
 
   // Get historical briefings (if we store them)
-  async getHistoricalBriefings(days: number = 7): Promise<MorningBriefing[]> {
+  async getHistoricalBriefings(_days: number = 7): Promise<MorningBriefing[]> {
     // In a real implementation, we'd store briefings in a database
     // For now, return empty array
     return [];

@@ -1,7 +1,8 @@
-import Snoowrap from 'snoowrap';
-import { RedditContent, RedditContentType } from '../entities/RedditContent';
-import { RedditUser } from '../entities/RedditUser';
-import { RedditSource } from '../entities/RedditSource';
+const Snoowrap = require('snoowrap');
+// Entities imported for type reference only
+// import { RedditContent, RedditContentType } from '../entities/RedditContent';
+// import { RedditUser } from '../entities/RedditUser';
+// import { RedditSource } from '../entities/RedditSource';
 
 export interface RedditPost {
   id: string;
@@ -35,7 +36,7 @@ export interface RedditComment {
 }
 
 export class RedditApiService {
-  private reddit: Snoowrap;
+  private reddit: any;
 
   constructor() {
     this.reddit = new Snoowrap({
@@ -52,7 +53,7 @@ export class RedditApiService {
       const subreddit = await this.reddit.getSubreddit(subredditName);
       const posts = await subreddit.getHot({ limit, time: timeFilter });
       
-      return posts.map(post => ({
+      return posts.map((post: any) => ({
         id: post.id,
         title: post.title,
         selftext: post.selftext || '',

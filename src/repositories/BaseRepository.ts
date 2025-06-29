@@ -13,7 +13,7 @@ export abstract class BaseRepository<T extends ObjectLiteral> {
   }
 
   async findById(id: number): Promise<T | null> {
-    return await this.repository.findOne({ where: { id } as FindOptionsWhere<T> });
+    return await this.repository.findOne({ where: { id } as any });
   }
 
   async create(entityData: DeepPartial<T>): Promise<T> {

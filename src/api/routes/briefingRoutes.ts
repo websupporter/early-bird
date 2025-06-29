@@ -27,7 +27,7 @@ router.post('/generate', async (req: Request, res: Response) => {
 });
 
 // Get quick sentiment overview
-router.get('/sentiment', async (req: Request, res: Response) => {
+router.get('/sentiment', async (_req: Request, res: Response) => {
   try {
     const overview = await briefingService.getQuickSentimentOverview();
     
@@ -86,7 +86,7 @@ router.post('/analyze', async (req: Request, res: Response) => {
 });
 
 // Get system status
-router.get('/status', async (req: Request, res: Response) => {
+router.get('/status', async (_req: Request, res: Response) => {
   try {
     const status = await crawlerService.getOverallStatus();
     
