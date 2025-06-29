@@ -5,11 +5,11 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc && npm run build:frontend",
-    "build:frontend": "vite build",
+    "build:frontend": "cd src/frontend && vite build",
     "start": "node dist/index.js",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "dev:frontend": "vite",
+    "dev:frontend": "cd src/frontend && vite",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -17,7 +17,7 @@
     "format": "prettier --write 'src/**/*.{ts,tsx,json,md}'",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "preview": "vite preview"
+    "preview": "cd src/frontend && vite preview"
   },
   "keywords": [
     "crypto",

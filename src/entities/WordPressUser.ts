@@ -14,43 +14,43 @@ import { WordPressContent } from './WordPressContent';
 @Entity('wordpress_users')
 export class WordPressUser {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ type: 'varchar', length: 255 })
-  wordpressUsername: string;
+  wordpressUsername!: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  wordpressUserId: string;
+  wordpressUserId!: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  email: string;
+  email!: string;
 
   @Column({ type: 'text', nullable: true })
-  avatar: string;
+  avatar!: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  websiteUrl: string;
+  websiteUrl!: string;
 
   @Column({ type: 'int', default: 0 })
-  postCount: number;
+  postCount!: number;
 
   @Column({ type: 'boolean', default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   // Relations
   @Column({ nullable: true })
-  userId: number;
+  userId!: number;
 
   @ManyToOne(() => User, user => user.wordpressUsers)
   @JoinColumn({ name: 'userId' })
-  user: User;
+  user!: User;
 
   @OneToMany(() => WordPressContent, content => content.author)
-  posts: WordPressContent[];
+  posts!: WordPressContent[];
 }
