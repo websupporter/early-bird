@@ -1,155 +1,244 @@
 # CryptoTraders Morning Briefing 🚀
 
-Ein AI-basiertes System zur Aggregation und Analyse von Kryptowährungs-Nachrichten und -Sentiment aus verschiedenen Quellen wie Reddit, WordPress-Blogs und Marktdaten.
+AI-basiertes System zur Aggregation und Analyse von Kryptowährungs-Nachrichten und -Sentiment mit modernem React-Frontend.
 
-## 🌟 Funktionen
+## 🚀 Funktionen
 
-- **Multi-Source Data Crawling**: Automatisches Crawlen von Reddit-Subreddits und WordPress-Blogs
-- **AI-Powered Sentiment Analysis**: Verwendet OpenAI für intelligente Sentiment-Analyse
-- **Market Data Integration**: Binance API für Marktdaten und Greed & Fear Index
-- **Morning Briefing Generation**: Automatische Generierung von täglichen Marktanalysen
-- **Web Interface**: Moderne, responsive Web-UI für Administration und Überwachung
-- **RESTful API**: Vollständige REST API für Integration und Automation
+- **Modern React Frontend**: Vollständig refaktoriert mit React, TypeScript, TanStack Query und Mantine UI
+- **AI-Powered Briefings**: Automatische Generierung von Morning Briefings mit OpenAI
+- **Multi-Source Crawler**: Reddit und WordPress Content-Aggregation
+- **Sentiment Analysis**: Erweiterte Stimmungsanalyse mit Greed & Fear Index
+- **Real-time Updates**: Live-Datenaktualisierung mit TanStack Query
+- **Responsive Design**: Moderne, mobile-optimierte Benutzeroberfläche
+- **Admin Panel**: Vollständige Verwaltung von Quellen und Crawling-Operationen
 
-## 📋 Technologie-Stack
-
-### Backend
-- **Node.js** & **TypeScript** - Typsichere Server-Entwicklung
-- **Express.js** - Web-Framework
-- **TypeORM** - ORM für Datenbankoperationen
-- **MySQL** - Relationale Datenbank
-- **OpenAI API** - AI-basierte Analyse
-- **Redis** (optional) - Caching
+## �️ Tech Stack
 
 ### Frontend
-- **HTML5** & **Vanilla JavaScript**
-- **Alpine.js** - Reaktive UI-Framework
-- **TailwindCSS** - Utility-first CSS Framework
+- **React 18** mit TypeScript
+- **Mantine UI** für moderne Komponenten
+- **TanStack Query** für State Management und API-Calls
+- **Vite** als Build-Tool
+- **Tabler Icons** für Icons
 
-### External APIs
-- **Reddit API** (snoowrap)
-- **WordPress REST API**
-- **Binance API**
-- **Alternative.me Fear & Greed Index**
+### Backend
+- **Node.js** mit Express und TypeScript
+- **TypeORM** für Datenbankoperationen
+- **MySQL** Datenbank
+- **OpenAI API** für AI-Funktionen
+- **Redis** für Caching (optional)
 
-## 🚀 Quick Start
+## 📦 Installation
 
-### 1. Voraussetzungen
+### Voraussetzungen
+- Node.js >= 18.0.0
+- npm >= 8.0.0
+- MySQL >= 8.0
+- Docker (optional)
 
-- Node.js (v18+)
-- MySQL (v8.0+)
-- npm oder yarn
+### Entwicklungsumgebung
 
-### 2. Installation
-
+1. **Repository klonen**
 ```bash
-# Repository klonen
 git clone https://github.com/websupporter/early-bird.git
 cd early-bird
-
-# Dependencies installieren
-npm install
-
-# Environment-Variablen einrichten
-cp .env.example .env
 ```
 
-### 3. Konfiguration
+2. **Dependencies installieren**
+```bash
+npm install
+```
 
-Bearbeiten Sie die `.env` Datei:
+3. **Umgebungsvariablen konfigurieren**
+```bash
+cp .env.example .env
+# Bearbeiten Sie die .env-Datei mit Ihren Konfigurationen
+```
+
+4. **Datenbank starten (mit Docker)**
+```bash
+npm run docker:up
+```
+
+5. **Entwicklungsserver starten**
+```bash
+npm run dev
+```
+
+Das Frontend läuft auf http://localhost:3000 und das Backend auf http://localhost:3001.
+
+### Produktionsumgebung
+
+```bash
+# Build erstellen
+npm run build
+
+# Produktionsserver starten
+npm start
+```
+
+## 🎯 Verfügbare Scripts
+
+- `npm run dev` - Startet Frontend und Backend gleichzeitig
+- `npm run dev:frontend` - Nur Frontend-Entwicklungsserver
+- `npm run dev:backend` - Nur Backend-Entwicklungsserver
+- `npm run build` - Baut Backend und Frontend für Produktion
+- `npm run build:frontend` - Baut nur das Frontend
+- `npm run start` - Startet den Produktionsserver
+- `npm run test` - Führt Tests aus
+- `npm run lint` - Führt Linting aus
+- `npm run format` - Formatiert Code mit Prettier
+
+## 📁 Projektstruktur
+
+```
+early-bird/
+├── src/
+│   ├── frontend/           # React Frontend
+│   │   ├── src/
+│   │   │   ├── api/        # API-Client und Typen
+│   │   │   ├── components/ # React-Komponenten
+│   │   │   ├── hooks/      # Custom Hooks
+│   │   │   ├── App.tsx     # Haupt-App-Komponente
+│   │   │   ├── main.tsx    # React-Einstiegspunkt
+│   │   │   └── theme.ts    # Mantine-Theme
+│   │   ├── index.html      # HTML-Template
+│   │   ├── vite.config.ts  # Vite-Konfiguration
+│   │   └── tsconfig.json   # TypeScript-Konfiguration
+│   ├── api/                # Express API-Routen
+│   ├── config/             # Konfigurationsdateien
+│   ├── crawlers/           # Content-Crawler
+│   ├── entities/           # TypeORM-Entitäten
+│   ├── repositories/       # Datenbank-Repositories
+│   ├── services/           # Business-Logic-Services
+│   └── index.ts            # Backend-Einstiegspunkt
+├── public/                 # Gebaute Frontend-Dateien
+├── docker/                 # Docker-Konfiguration
+└── package.json
+```
+
+## 🔧 Konfiguration
+
+### Umgebungsvariablen
 
 ```env
 # Database
 DB_HOST=localhost
 DB_PORT=3306
-DB_USER=cryptouser
-DB_PASSWORD=cryptopass123
-DB_NAME=cryptotraders
+DB_USERNAME=root
+DB_PASSWORD=password
+DB_DATABASE=crypto_briefing
 
-# OpenAI API
+# OpenAI
 OPENAI_API_KEY=your_openai_api_key
 
 # Reddit API
 REDDIT_CLIENT_ID=your_reddit_client_id
 REDDIT_CLIENT_SECRET=your_reddit_client_secret
-REDDIT_USERNAME=your_reddit_username
-REDDIT_PASSWORD=your_reddit_password
+REDDIT_USER_AGENT=your_app_name
+
+# Application
+NODE_ENV=development
+PORT=3001
+FRONTEND_URL=http://localhost:3000
 ```
 
-### 4. Datenbank einrichten
+## 🎨 Frontend-Features
 
+### Dashboard
+- **Echtzeitdaten**: Live-Updates von Sentiment und Systemstatus
+- **Briefing-Generierung**: Ein-Klick-Generierung von Morning Briefings
+- **Sentiment-Visualisierung**: Grafische Darstellung von Stimmungsdaten
+- **Responsive Design**: Optimiert für Desktop und Mobile
+
+### Admin Panel
+- **Quellenverwaltung**: Hinzufügen, Bearbeiten und Löschen von Reddit/WordPress-Quellen
+- **Crawler-Steuerung**: Manuelle Auslösung von Crawling-Operationen
+- **Systemüberwachung**: Echtzeit-Statistiken und Systemstatus
+- **Tabellen-Interface**: Erweiterte Datentabellen mit Sorting und Filtering
+
+### UI/UX
+- **Mantine UI**: Moderne, zugängliche Komponenten
+- **Dunkler Modus**: Automatische Theme-Erkennung
+- **Responsive Grid**: Optimiertes Layout für alle Bildschirmgrößen
+- **Ladezustände**: Intuitive Loading-States und Feedback
+
+## � API-Endpoints
+
+### Briefing-Endpoints
+- `POST /api/briefing/generate` - Generiert neues Morning Briefing
+- `GET /api/briefing/sentiment` - Ruft Sentiment-Übersicht ab
+- `GET /api/briefing/status` - Systemstatus
+- `GET /api/briefing/history` - Historische Briefings
+- `POST /api/briefing/analyze` - Analysiert Inhalte
+
+### Admin-Endpoints
+- `GET /api/admin/stats` - Systemstatistiken
+- `GET /api/admin/reddit/sources` - Reddit-Quellen
+- `POST /api/admin/reddit/sources` - Neue Reddit-Quelle
+- `PUT /api/admin/reddit/sources/:id` - Reddit-Quelle aktualisieren
+- `DELETE /api/admin/reddit/sources/:id` - Reddit-Quelle löschen
+- `GET /api/admin/wordpress/sources` - WordPress-Quellen
+- `POST /api/admin/wordpress/sources` - Neue WordPress-Quelle
+- `PUT /api/admin/wordpress/sources/:id` - WordPress-Quelle aktualisieren
+- `DELETE /api/admin/wordpress/sources/:id` - WordPress-Quelle löschen
+- `POST /api/admin/crawl/full` - Vollständiger Crawl
+- `POST /api/admin/crawl/reddit` - Reddit-Crawl
+- `POST /api/admin/crawl/wordpress` - WordPress-Crawl
+- `POST /api/admin/crawl/market` - Marktdaten aktualisieren
+
+## 🧪 Entwicklung
+
+### Linting und Formatierung
 ```bash
-# MySQL Datenbank erstellen
-mysql -u root -p
-CREATE DATABASE cryptotraders;
-CREATE USER 'cryptouser'@'localhost' IDENTIFIED BY 'cryptopass123';
-GRANT ALL PRIVILEGES ON cryptotraders.* TO 'cryptouser'@'localhost';
+npm run lint          # ESLint
+npm run format        # Prettier
 ```
 
-### 5. Anwendung starten
-
+### Tests
 ```bash
-# Entwicklungsmodus
-npm run dev
+npm run test          # Alle Tests
+npm run test:watch    # Test-Watcher
+npm run test:coverage # Coverage-Report
+```
 
-# Production build
+### Docker-Entwicklung
+```bash
+npm run docker:up     # Services starten
+npm run docker:down   # Services stoppen
+```
+
+## 📈 Deployment
+
+### Produktions-Build
+```bash
 npm run build
 npm start
 ```
 
-Die Anwendung ist dann verfügbar unter:
-- **Frontend**: http://localhost:3001
-- **API Dokumentation**: http://localhost:3001/api
-- **Health Check**: http://localhost:3001/health
-
-## 📊 API Endpoints
-
-### Briefing API
-
-| Method | Endpoint | Beschreibung |
-|--------|----------|--------------|
-| POST | `/api/briefing/generate` | Neues Morning Briefing generieren |
-| GET | `/api/briefing/sentiment` | Aktuelle Sentiment-Übersicht |
-| GET | `/api/briefing/history` | Historische Briefings |
-| POST | `/api/briefing/analyze` | Batch-Analyse von Content |
-| GET | `/api/briefing/status` | System-Status |
-
-### Admin API
-
-| Method | Endpoint | Beschreibung |
-|--------|----------|--------------|
-| GET | `/api/admin/reddit/sources` | Reddit-Quellen verwalten |
-| POST | `/api/admin/reddit/sources` | Neue Reddit-Quelle hinzufügen |
-| GET | `/api/admin/wordpress/sources` | WordPress-Quellen verwalten |
-| POST | `/api/admin/crawl/full` | Vollständiges Crawling starten |
-| GET | `/api/admin/stats` | System-Statistiken |
-
-## � Architektur
-
+### Docker-Deployment
+```bash
+docker-compose up -d
 ```
-src/
-├── api/                    # REST API Layer
-│   ├── routes/            # Express Routes
-│   └── app.ts             # Express App Setup
-├── config/                # Konfiguration
-│   ├── database.ts        # TypeORM Konfiguration
-│   └── logger.ts          # Logging Setup
-├── entities/              # TypeORM Entities
-│   ├── User.ts           # User Entity
-│   ├── RedditContent.ts  # Reddit Content Entity
-│   └── ...               # Weitere Entities
-├── repositories/          # Data Access Layer
-│   ├── BaseRepository.ts # Abstract Base Repository
-│   └── ...               # Spezifische Repositories
-├── services/              # Business Logic Layer
-│   ├── OpenAIService.ts  # AI/ML Services
-│   ├── RedditApiService.ts
-│   └── ...               # Weitere Services
-├── crawlers/              # Data Crawling Layer
-│   ├── MasterCrawlerService.ts
-│   └── ...               # Spezifische Crawler
-└── index.ts              # Application Entry Point
-```
+
+## 🤝 Beitragen
+
+1. Fork des Repositories
+2. Feature-Branch erstellen (`git checkout -b feature/amazing-feature`)
+3. Änderungen committen (`git commit -m 'Add amazing feature'`)
+4. Branch pushen (`git push origin feature/amazing-feature`)
+5. Pull Request erstellen
+
+## 📝 Lizenz
+
+Dieses Projekt ist unter der ISC-Lizenz lizenziert.
+
+## 🔗 Links
+
+- [Mantine UI Dokumentation](https://mantine.dev/)
+- [TanStack Query Dokumentation](https://tanstack.com/query/latest)
+- [React Dokumentation](https://react.dev/)
+- [TypeScript Dokumentation](https://www.typescriptlang.org/)
 
 ## 🤖 AI Integration
 
@@ -185,7 +274,7 @@ Das System nutzt OpenAI für:
 - **Environment Variables**: Sichere Speicherung von API-Schlüsseln
 - **Error Handling**: Robuste Fehlerbehandlung
 
-## � Automated Workflows
+## 🚀 Automated Workflows
 
 Das System kann so konfiguriert werden, dass es automatisch:
 
