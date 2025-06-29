@@ -4,12 +4,8 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 export const AppDataSource = new DataSource({
-  type: 'mysql',
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '3306'),
-  username: process.env.DB_USER || 'cryptouser',
-  password: process.env.DB_PASSWORD || 'cryptopass123',
-  database: process.env.DB_NAME || 'cryptotraders',
+  type: 'sqlite',
+  database: 'database.sqlite',
   synchronize: process.env.NODE_ENV === 'development',
   logging: process.env.NODE_ENV === 'development',
   entities: [
@@ -38,6 +34,7 @@ export const initializeDatabase = async (): Promise<void> => {
     console.log('Database connection established successfully');
   } catch (error) {
     console.error('Error during database initialization:', error);
-    throw error;
+    console.log('⚠️  Continuing without database connection...');
+    // Don't throw the error, allow the app to start without database
   }
 };
