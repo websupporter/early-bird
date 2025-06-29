@@ -10,7 +10,6 @@
 [x] Create environment configuration management
 [x] Setup logging system
 [x] Create error handling middleware
-[ ] Setup CI/CD pipeline configuration
 
 ## Sources
 ### General
