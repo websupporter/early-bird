@@ -1,4 +1,4 @@
-import { FindOptionsWhere } from 'typeorm';
+// import { FindOptionsWhere } from 'typeorm';
 import { BaseRepository } from './BaseRepository';
 import { User } from '../entities/User';
 

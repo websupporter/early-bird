@@ -20,7 +20,7 @@ export const createApp = async (): Promise<express.Application> => {
   app.use(express.urlencoded({ extended: true }));
 
   // Request logging
-  app.use((req, res, next) => {
+  app.use((req, _res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
     next();
   });
@@ -39,7 +39,7 @@ export const createApp = async (): Promise<express.Application> => {
   app.use('/api/admin', adminRoutes);
 
   // Health check endpoint
-  app.get('/health', (req, res) => {
+  app.get('/health', (_req, res) => {
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -48,7 +48,7 @@ export const createApp = async (): Promise<express.Application> => {
   });
 
   // API info endpoint
-  app.get('/api', (req, res) => {
+  app.get('/api', (_req, res) => {
     res.json({
       name: 'CryptoTraders Morning Briefing API',
       version: '1.0.0',
@@ -84,13 +84,13 @@ export const createApp = async (): Promise<express.Application> => {
     app.use(express.static('public'));
     
     // Catch-all handler for client-side routing
-    app.get('*', (req, res) => {
+    app.get('*', (_req, res) => {
       res.sendFile('index.html', { root: 'public' });
     });
   }
 
   // Error handling middleware
-  app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error('Unhandled error:', err);
     
     res.status(500).json({

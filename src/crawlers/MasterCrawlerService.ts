@@ -242,7 +242,7 @@ export class MasterCrawlerService {
 
   // Schedule methods for cron jobs
   async runLightCrawl(): Promise<Partial<MasterCrawlResult>> {
-    logger.info('Starting light crawl (Reddit + Greed&Fear only)');
+    console.log('Starting light crawl (Reddit + Greed&Fear only)');
     
     const [redditResults, greedFearResult] = await Promise.allSettled([
       this.crawlReddit(),
@@ -283,7 +283,7 @@ export class MasterCrawlerService {
   }
 
   async runMarketDataUpdate(): Promise<{ binance: number; greedFear: number }> {
-    logger.info('Starting market data update');
+    console.log('Starting market data update');
     
     const [binanceResult, greedFearResult] = await Promise.allSettled([
       this.updateBinanceData(),

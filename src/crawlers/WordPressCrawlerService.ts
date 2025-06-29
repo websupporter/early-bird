@@ -1,6 +1,6 @@
-import { WordPressApiService, WordPressPost } from '../services/WordPressApiService';
+import { WordPressApiService } from '../services/WordPressApiService';
 import { RepositoryFactory } from '../repositories';
-import { WordPressContent, WordPressContentStatus } from '../entities/WordPressContent';
+import { WordPressContentStatus } from '../entities/WordPressContent';
 import { WordPressUser } from '../entities/WordPressUser';
 import { WordPressSource } from '../entities/WordPressSource';
 import { User } from '../entities/User';
@@ -102,7 +102,7 @@ export class WordPressCrawlerService {
           const cleanExcerpt = wordpressApi.stripHtml(post.excerpt.rendered);
 
           // Create content entry
-          const content = await this.wordpressContentRepo.create({
+          await this.wordpressContentRepo.create({
             wordpressId: post.id.toString(),
             title: wordpressApi.stripHtml(post.title.rendered),
             content: cleanContent,
@@ -203,7 +203,7 @@ export class WordPressCrawlerService {
   private async processWordPressUser(
     wpUser: { id: number; name: string; slug: string; avatar_urls: Record<string, string>; description?: string; url?: string },
     userId: number,
-    sourceId: number
+    _sourceId: number
   ): Promise<WordPressUser> {
     // For now, we'll create a simplified implementation
     // In a real implementation, we'd have a proper WordPressUserRepository
@@ -223,7 +223,7 @@ export class WordPressCrawlerService {
     } as WordPressUser;
   }
 
-  private async createAnonymousWordPressUser(userId: number, sourceId: number): Promise<WordPressUser> {
+  private async createAnonymousWordPressUser(userId: number, _sourceId: number): Promise<WordPressUser> {
     return {
       id: Math.floor(Math.random() * 1000000),
       wordpressUsername: 'Anonymous',

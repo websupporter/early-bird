@@ -1,6 +1,6 @@
-import { RedditApiService, RedditPost, RedditComment } from '../services/RedditApiService';
+import { RedditApiService } from '../services/RedditApiService';
 import { RepositoryFactory } from '../repositories';
-import { RedditContent, RedditContentType } from '../entities/RedditContent';
+import { RedditContentType } from '../entities/RedditContent';
 import { RedditUser } from '../entities/RedditUser';
 import { RedditSource } from '../entities/RedditSource';
 import { User } from '../entities/User';
@@ -64,7 +64,7 @@ export class RedditCrawlerService {
           const redditUser = await this.processRedditUser(post.author.name, post.author.id, authorUser.id);
 
           // Create content entry
-          const content = await this.redditContentRepo.create({
+          await this.redditContentRepo.create({
             redditId: post.id,
             type: RedditContentType.POST,
             title: post.title,
@@ -179,7 +179,7 @@ export class RedditCrawlerService {
     return results;
   }
 
-  private async processUser(username: string, redditUserId?: string): Promise<User> {
+  private async processUser(username: string, _redditUserId?: string): Promise<User> {
     // Check if user already exists
     let user = await this.userRepo.findByUsername(username);
     
