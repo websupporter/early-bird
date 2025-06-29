@@ -17,24 +17,25 @@
 [x] Create UserEntity
 
 ### Reddit
-[ ] Create table for reddit content
-[ ] Create table for reddit users
-[ ] Create Repository to CRUD this data
-[ ] Create RedditEntity
-[ ] Create RedditUserEntity
+[x] Create table for reddit content
+[x] Create table for reddit users
+[x] Create Repository to CRUD this data
+[x] Create RedditEntity (RedditContent)
+[x] Create RedditUserEntity
 [ ] Create API to crawl subs
-[ ] Create table of subs to read from
-[ ] Create Repository to CRUD the subs table
-[ ] Create RedditSourceEntity
+[x] Create table of subs to read from
+[x] Create Repository to CRUD the subs table
+[x] Create RedditSourceEntity
 
 ### WordPress
-[ ] Create table to store WordPress blog content
-[ ] Create table for WordPress users
-[ ] Create WordPressEntity
-[ ] Create WordPressUserEntity
+[x] Create table to store WordPress blog content
+[x] Create table for WordPress users
+[x] Create WordPressEntity (WordPressContent)
+[x] Create WordPressUserEntity
+[x] Create Repository to CRUD WordPress data
 [ ] Create API to crawl WordPress sites
-[ ] Create table for sites to crawl
-[ ] Create WordPressSourceEntity
+[x] Create table for sites to crawl
+[x] Create WordPressSourceEntity
 
 ### Binance
 [ ] Create table to store Candlestick data
