@@ -12,41 +12,41 @@ import { WordPressUser } from './WordPressUser';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ type: 'varchar', length: 255, unique: true })
-  username: string;
+  username!: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  bio: string;
+  bio!: string;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, default: 0.0 })
-  reputationScore: number;
+  reputationScore!: number;
 
   @Column({ type: 'int', default: 0 })
-  totalPredictions: number;
+  totalPredictions!: number;
 
   @Column({ type: 'int', default: 0 })
-  correctPredictions: number;
+  correctPredictions!: number;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, default: 0.0 })
-  accuracyRate: number;
+  accuracyRate!: number;
 
   @Column({ type: 'boolean', default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   // Relations
   @OneToMany(() => RedditUser, redditUser => redditUser.user)
-  redditUsers: RedditUser[];
+  redditUsers!: RedditUser[];
 
   @OneToMany(() => WordPressUser, wordpressUser => wordpressUser.user)
-  wordpressUsers: WordPressUser[];
+  wordpressUsers!: WordPressUser[];
 
   // Methods
   calculateAccuracyRate(): void {

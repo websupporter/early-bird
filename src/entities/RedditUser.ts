@@ -14,43 +14,43 @@ import { RedditContent } from './RedditContent';
 @Entity('reddit_users')
 export class RedditUser {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ type: 'varchar', length: 255, unique: true })
-  redditUsername: string;
+  redditUsername!: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  redditUserId: string;
+  redditUserId!: string;
 
   @Column({ type: 'text', nullable: true })
-  avatar: string;
+  avatar!: string;
 
   @Column({ type: 'int', default: 0 })
-  karmaCount: number;
+  karmaCount!: number;
 
   @Column({ type: 'int', default: 0 })
-  postCount: number;
+  postCount!: number;
 
   @Column({ type: 'int', default: 0 })
-  commentCount: number;
+  commentCount!: number;
 
   @Column({ type: 'boolean', default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   // Relations
   @Column({ nullable: true })
-  userId: number;
+  userId!: number;
 
   @ManyToOne(() => User, user => user.redditUsers)
   @JoinColumn({ name: 'userId' })
-  user: User;
+  user!: User;
 
   @OneToMany(() => RedditContent, content => content.author)
-  posts: RedditContent[];
+  posts!: RedditContent[];
 }

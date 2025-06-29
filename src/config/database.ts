@@ -12,9 +12,21 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME || 'cryptotraders',
   synchronize: process.env.NODE_ENV === 'development',
   logging: process.env.NODE_ENV === 'development',
-  entities: ['src/entities/**/*.ts'],
-  migrations: ['src/migrations/**/*.ts'],
-  subscribers: ['src/subscribers/**/*.ts'],
+  entities: [
+    process.env.NODE_ENV === 'production' 
+      ? 'dist/entities/**/*.js'
+      : 'src/entities/**/*.ts'
+  ],
+  migrations: [
+    process.env.NODE_ENV === 'production' 
+      ? 'dist/migrations/**/*.js'
+      : 'src/migrations/**/*.ts'
+  ],
+  subscribers: [
+    process.env.NODE_ENV === 'production' 
+      ? 'dist/subscribers/**/*.js'
+      : 'src/subscribers/**/*.ts'
+  ],
   extra: {
     connectionLimit: 10,
   },

@@ -18,64 +18,64 @@ export enum RedditContentType {
 @Entity('reddit_content')
 export class RedditContent {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ type: 'varchar', length: 255, unique: true })
-  redditId: string;
+  redditId!: string;
 
   @Column({ type: 'enum', enum: RedditContentType })
-  type: RedditContentType;
+  type!: RedditContentType;
 
   @Column({ type: 'varchar', length: 500 })
-  title: string;
+  title!: string;
 
   @Column({ type: 'text' })
-  content: string;
+  content!: string;
 
   @Column({ type: 'varchar', length: 1000, nullable: true })
-  url: string;
+  url!: string;
 
   @Column({ type: 'int', default: 0 })
-  upvotes: number;
+  upvotes!: number;
 
   @Column({ type: 'int', default: 0 })
-  downvotes: number;
+  downvotes!: number;
 
   @Column({ type: 'int', default: 0 })
-  commentCount: number;
+  commentCount!: number;
 
   @Column({ type: 'decimal', precision: 3, scale: 2, default: 0.0 })
-  sentimentScore: number; // -1.0 to 1.0
+  sentimentScore!: number; // -1.0 to 1.0
 
   @Column({ type: 'text', nullable: true })
-  extractedKeywords: string; // JSON string of keywords
+  extractedKeywords!: string; // JSON string of keywords
 
   @Column({ type: 'boolean', default: false })
-  isAnalyzed: boolean;
+  isAnalyzed!: boolean;
 
   @Column({ type: 'datetime' })
-  postedAt: Date;
+  postedAt!: Date;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   // Relations
   @Column()
-  authorId: number;
+  authorId!: number;
 
   @ManyToOne(() => RedditUser, redditUser => redditUser.posts)
   @JoinColumn({ name: 'authorId' })
-  author: RedditUser;
+  author!: RedditUser;
 
   @Column()
-  sourceId: number;
+  sourceId!: number;
 
   @ManyToOne(() => RedditSource, source => source.content)
   @JoinColumn({ name: 'sourceId' })
-  source: RedditSource;
+  source!: RedditSource;
 
   // Methods
   getEngagementScore(): number {

@@ -19,73 +19,73 @@ export enum WordPressContentStatus {
 @Entity('wordpress_content')
 export class WordPressContent {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ type: 'varchar', length: 255, unique: true })
-  wordpressId: string;
+  wordpressId!: string;
 
   @Column({ type: 'varchar', length: 500 })
-  title: string;
+  title!: string;
 
   @Column({ type: 'text' })
-  content: string;
+  content!: string;
 
   @Column({ type: 'text', nullable: true })
-  excerpt: string;
+  excerpt!: string;
 
   @Column({ type: 'varchar', length: 1000 })
-  url: string;
+  url!: string;
 
   @Column({ type: 'enum', enum: WordPressContentStatus, default: WordPressContentStatus.PUBLISHED })
-  status: WordPressContentStatus;
+  status!: WordPressContentStatus;
 
   @Column({ type: 'text', nullable: true })
-  categories: string; // JSON string of categories
+  categories!: string; // JSON string of categories
 
   @Column({ type: 'text', nullable: true })
-  tags: string; // JSON string of tags
+  tags!: string; // JSON string of tags
 
   @Column({ type: 'int', default: 0 })
-  viewCount: number;
+  viewCount!: number;
 
   @Column({ type: 'int', default: 0 })
-  commentCount: number;
+  commentCount!: number;
 
   @Column({ type: 'decimal', precision: 3, scale: 2, default: 0.0 })
-  sentimentScore: number; // -1.0 to 1.0
+  sentimentScore!: number; // -1.0 to 1.0
 
   @Column({ type: 'text', nullable: true })
-  extractedKeywords: string; // JSON string of keywords
+  extractedKeywords!: string; // JSON string of keywords
 
   @Column({ type: 'boolean', default: false })
-  isAnalyzed: boolean;
+  isAnalyzed!: boolean;
 
   @Column({ type: 'datetime' })
-  publishedAt: Date;
+  publishedAt!: Date;
 
   @Column({ type: 'datetime', nullable: true })
-  modifiedAt: Date;
+  modifiedAt!: Date;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   // Relations
   @Column()
-  authorId: number;
+  authorId!: number;
 
   @ManyToOne(() => WordPressUser, wordpressUser => wordpressUser.posts)
   @JoinColumn({ name: 'authorId' })
-  author: WordPressUser;
+  author!: WordPressUser;
 
   @Column()
-  sourceId: number;
+  sourceId!: number;
 
   @ManyToOne(() => WordPressSource, source => source.content)
   @JoinColumn({ name: 'sourceId' })
-  source: WordPressSource;
+  source!: WordPressSource;
 
   // Methods
   getEngagementScore(): number {
