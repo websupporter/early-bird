@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoTraders Morning Briefing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        [x-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div x-data="cryptoApp()" x-cloak class="min-h-screen">
+        <!-- Navigation -->
+        <nav class="bg-blue-900 text-white shadow-lg">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center space-x-4">
+                        <i class="fas fa-chart-line text-2xl"></i>
+                        <h1 class="text-xl font-bold">CryptoTraders Morning Briefing</h1>
+                    </div>
+                    <div class="flex space-x-4">
+                        <button @click="currentTab = 'dashboard'" 
+                                :class="currentTab === 'dashboard' ? 'bg-blue-700' : 'hover:bg-blue-800'"
+                                class="px-4 py-2 rounded">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                        </button>
+                        <button @click="currentTab = 'admin'" 
+                                :class="currentTab === 'admin' ? 'bg-blue-700' : 'hover:bg-blue-800'"
+                                class="px-4 py-2 rounded">
+                            <i class="fas fa-cog mr-2"></i>Admin
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Dashboard Tab -->
+        <div x-show="currentTab === 'dashboard'" class="container mx-auto px-4 py-8">
+            <!-- Status Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100">
+                            <i class="fas fa-reddit text-green-600"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">Reddit Sources</p>
+                            <p class="text-2xl font-bold" x-text="status.reddit?.activeSources || 0"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100">
+                            <i class="fab fa-wordpress text-blue-600"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">WordPress Sources</p>
+                            <p class="text-2xl font-bold" x-text="status.wordpress?.activeSources || 0"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-yellow-100">
+                            <i class="fas fa-brain text-yellow-600"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">Greed & Fear</p>
+                            <p class="text-2xl font-bold" x-text="sentiment.greedFearIndex || '--'"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100">
+                            <i class="fas fa-chart-bar text-purple-600"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">Avg Sentiment</p>
+                            <p class="text-2xl font-bold" x-text="((sentiment.redditSentiment + sentiment.wordpressSentiment) / 2).toFixed(2)"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <h2 class="text-xl font-bold mb-4">Quick Actions</h2>
+                <div class="flex flex-wrap gap-4">
+                    <button @click="generateBriefing()" 
+                            :disabled="isLoading"
+                            class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg flex items-center">
+                        <i class="fas fa-file-alt mr-2"></i>
+                        <span x-show="!isLoading">Generate Morning Briefing</span>
+                        <span x-show="isLoading">Generating...</span>
+                    </button>
+                    
+                    <button @click="refreshSentiment()" 
+                            :disabled="isLoading"
+                            class="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg flex items-center">
+                        <i class="fas fa-refresh mr-2"></i>
+                        Refresh Sentiment
+                    </button>
+                    
+                    <button @click="runAnalysis()" 
+                            :disabled="isLoading"
+                            class="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg flex items-center">
+                        <i class="fas fa-brain mr-2"></i>
+                        Analyze Content
+                    </button>
+                </div>
+            </div>
+
+            <!-- Current Briefing -->
+            <div x-show="currentBriefing" class="bg-white rounded-lg shadow p-6 mb-8">
+                <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-xl font-bold">Latest Morning Briefing</h2>
+                    <span class="text-sm text-gray-500" x-text="currentBriefing?.date"></span>
+                </div>
+                
+                <div x-show="currentBriefing">
+                    <h3 class="text-lg font-semibold mb-2" x-text="currentBriefing?.title"></h3>
+                    <p class="text-gray-700 mb-4" x-text="currentBriefing?.summary"></p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold mb-2">Market Overview</h4>
+                            <p class="text-sm text-gray-600" x-text="currentBriefing?.marketOverview"></p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold mb-2">Sentiment Analysis</h4>
+                            <p class="text-sm text-gray-600" x-text="currentBriefing?.sentimentAnalysis"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h4 class="font-semibold mb-2">Key Insights</h4>
+                        <ul class="list-disc list-inside text-sm text-gray-600">
+                            <template x-for="insight in currentBriefing?.keyInsights || []">
+                                <li x-text="insight"></li>
+                            </template>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h4 class="font-semibold mb-2">Recommendations</h4>
+                        <ul class="list-disc list-inside text-sm text-gray-600">
+                            <template x-for="rec in currentBriefing?.recommendations || []">
+                                <li x-text="rec"></li>
+                            </template>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-4 flex justify-between items-center text-sm text-gray-500">
+                        <span>Confidence: <span x-text="((currentBriefing?.confidence || 0) * 100).toFixed(0)"></span>%</span>
+                        <span>Sources: <span x-text="currentBriefing?.metadata?.sourceCount || 0"></span></span>
+                        <span>Data Points: <span x-text="currentBriefing?.metadata?.dataPoints || 0"></span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Tab -->
+        <div x-show="currentTab === 'admin'" class="container mx-auto px-4 py-8">
+            <!-- System Stats -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <h2 class="text-xl font-bold mb-4">System Statistics</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Sources</p>
+                        <p class="text-2xl font-bold" x-text="stats.totalSources || 0"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Reddit Sources</p>
+                        <p class="text-2xl font-bold" x-text="stats.redditSources || 0"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">WordPress Sources</p>
+                        <p class="text-2xl font-bold" x-text="stats.wordpressSources || 0"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Crawler Controls -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <h2 class="text-xl font-bold mb-4">Crawler Controls</h2>
+                <div class="flex flex-wrap gap-4">
+                    <button @click="runFullCrawl()" 
+                            :disabled="isLoading"
+                            class="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg">
+                        <i class="fas fa-play mr-2"></i>Full Crawl
+                    </button>
+                    
+                    <button @click="runRedditCrawl()" 
+                            :disabled="isLoading"
+                            class="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg">
+                        <i class="fab fa-reddit mr-2"></i>Reddit Crawl
+                    </button>
+                    
+                    <button @click="runWordPressCrawl()" 
+                            :disabled="isLoading"
+                            class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg">
+                        <i class="fab fa-wordpress mr-2"></i>WordPress Crawl
+                    </button>
+                    
+                    <button @click="updateMarketData()" 
+                            :disabled="isLoading"
+                            class="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg">
+                        <i class="fas fa-chart-line mr-2"></i>Market Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Source Management -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Reddit Sources -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold">Reddit Sources</h3>
+                        <button @click="showAddRedditForm = true" 
+                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                            <i class="fas fa-plus mr-2"></i>Add
+                        </button>
+                    </div>
+                    
+                    <!-- Add Reddit Source Form -->
+                    <div x-show="showAddRedditForm" class="mb-4 p-4 bg-gray-50 rounded">
+                        <div class="space-y-3">
+                            <input x-model="newRedditSource.subredditName" 
+                                   placeholder="Subreddit name (e.g., cryptocurrency)" 
+                                   class="w-full px-3 py-2 border rounded">
+                            <input x-model="newRedditSource.description" 
+                                   placeholder="Description" 
+                                   class="w-full px-3 py-2 border rounded">
+                            <input x-model="newRedditSource.crawlIntervalHours" 
+                                   type="number" 
+                                   placeholder="Crawl interval (hours)" 
+                                   class="w-full px-3 py-2 border rounded">
+                            <div class="flex space-x-2">
+                                <button @click="addRedditSource()" 
+                                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                                    Add Source
+                                </button>
+                                <button @click="showAddRedditForm = false; resetRedditForm()" 
+                                        class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2 max-h-64 overflow-y-auto">
+                        <template x-for="source in redditSources">
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                <div>
+                                    <p class="font-medium" x-text="'r/' + source.subredditName"></p>
+                                    <p class="text-sm text-gray-600" x-text="source.description"></p>
+                                    <p class="text-xs text-gray-500">
+                                        Posts: <span x-text="source.totalPostsCrawled"></span> | 
+                                        Interval: <span x-text="source.crawlIntervalHours"></span>h
+                                    </p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button @click="toggleRedditSource(source)" 
+                                            :class="source.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'"
+                                            class="text-white px-3 py-1 rounded text-sm">
+                                        <span x-text="source.isActive ? 'Disable' : 'Enable'"></span>
+                                    </button>
+                                    <button @click="deleteRedditSource(source.id)" 
+                                            class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm">
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- WordPress Sources -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold">WordPress Sources</h3>
+                        <button @click="showAddWordPressForm = true" 
+                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                            <i class="fas fa-plus mr-2"></i>Add
+                        </button>
+                    </div>
+                    
+                    <!-- Add WordPress Source Form -->
+                    <div x-show="showAddWordPressForm" class="mb-4 p-4 bg-gray-50 rounded">
+                        <div class="space-y-3">
+                            <input x-model="newWordPressSource.siteUrl" 
+                                   placeholder="Site URL (e.g., https://example.com)" 
+                                   class="w-full px-3 py-2 border rounded">
+                            <input x-model="newWordPressSource.siteName" 
+                                   placeholder="Site name" 
+                                   class="w-full px-3 py-2 border rounded">
+                            <input x-model="newWordPressSource.description" 
+                                   placeholder="Description" 
+                                   class="w-full px-3 py-2 border rounded">
+                            <input x-model="newWordPressSource.crawlIntervalHours" 
+                                   type="number" 
+                                   placeholder="Crawl interval (hours)" 
+                                   class="w-full px-3 py-2 border rounded">
+                            <div class="flex space-x-2">
+                                <button @click="addWordPressSource()" 
+                                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                                    Add Source
+                                </button>
+                                <button @click="showAddWordPressForm = false; resetWordPressForm()" 
+                                        class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2 max-h-64 overflow-y-auto">
+                        <template x-for="source in wordpressSources">
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                <div>
+                                    <p class="font-medium" x-text="source.siteName"></p>
+                                    <p class="text-sm text-gray-600" x-text="source.siteUrl"></p>
+                                    <p class="text-xs text-gray-500">
+                                        Posts: <span x-text="source.totalPostsCrawled"></span> | 
+                                        Interval: <span x-text="source.crawlIntervalHours"></span>h
+                                    </p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button @click="toggleWordPressSource(source)" 
+                                            :class="source.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'"
+                                            class="text-white px-3 py-1 rounded text-sm">
+                                        <span x-text="source.isActive ? 'Disable' : 'Enable'"></span>
+                                    </button>
+                                    <button @click="deleteWordPressSource(source.id)" 
+                                            class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm">
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div x-show="isLoading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 flex items-center space-x-4">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span>Loading...</span>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div x-show="message" 
+             :class="messageType === 'success' ? 'bg-green-100 border-green-500 text-green-700' : 'bg-red-100 border-red-500 text-red-700'"
+             class="fixed top-4 right-4 max-w-md p-4 border rounded-lg shadow-lg z-40">
+            <div class="flex justify-between items-start">
+                <p x-text="message"></p>
+                <button @click="message = ''" class="ml-4 text-xl leading-none">&times;</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function cryptoApp() {
+            return {
+                currentTab: 'dashboard',
+                isLoading: false,
+                message: '',
+                messageType: 'success',
+                
+                // Data
+                status: {},
+                sentiment: { redditSentiment: 0, wordpressSentiment: 0, greedFearIndex: 50 },
+                stats: {},
+                currentBriefing: null,
+                redditSources: [],
+                wordpressSources: [],
+                
+                // Forms
+                showAddRedditForm: false,
+                showAddWordPressForm: false,
+                newRedditSource: { subredditName: '', description: '', crawlIntervalHours: 24 },
+                newWordPressSource: { siteUrl: '', siteName: '', description: '', crawlIntervalHours: 12 },
+
+                async init() {
+                    await this.loadInitialData();
+                },
+
+                async loadInitialData() {
+                    await Promise.all([
+                        this.loadStatus(),
+                        this.loadSentiment(),
+                        this.loadStats(),
+                        this.loadSources()
+                    ]);
+                },
+
+                async apiCall(url, options = {}) {
+                    try {
+                        const response = await fetch(`/api${url}`, {
+                            headers: { 'Content-Type': 'application/json' },
+                            ...options
+                        });
+                        const data = await response.json();
+                        if (!data.success) throw new Error(data.message || 'API call failed');
+                        return data.data;
+                    } catch (error) {
+                        this.showMessage(error.message, 'error');
+                        throw error;
+                    }
+                },
+
+                async loadStatus() {
+                    try {
+                        this.status = await this.apiCall('/briefing/status');
+                    } catch (error) {
+                        console.error('Failed to load status:', error);
+                    }
+                },
+
+                async loadSentiment() {
+                    try {
+                        this.sentiment = await this.apiCall('/briefing/sentiment');
+                    } catch (error) {
+                        console.error('Failed to load sentiment:', error);
+                    }
+                },
+
+                async loadStats() {
+                    try {
+                        this.stats = await this.apiCall('/admin/stats');
+                    } catch (error) {
+                        console.error('Failed to load stats:', error);
+                    }
+                },
+
+                async loadSources() {
+                    try {
+                        const [reddit, wordpress] = await Promise.all([
+                            this.apiCall('/admin/reddit/sources'),
+                            this.apiCall('/admin/wordpress/sources')
+                        ]);
+                        this.redditSources = reddit;
+                        this.wordpressSources = wordpress;
+                    } catch (error) {
+                        console.error('Failed to load sources:', error);
+                    }
+                },
+
+                async generateBriefing() {
+                    this.isLoading = true;
+                    try {
+                        this.currentBriefing = await this.apiCall('/briefing/generate', { method: 'POST' });
+                        this.showMessage('Morning briefing generated successfully!');
+                    } catch (error) {
+                        this.showMessage('Failed to generate briefing', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async refreshSentiment() {
+                    this.isLoading = true;
+                    try {
+                        await this.loadSentiment();
+                        this.showMessage('Sentiment data refreshed!');
+                    } catch (error) {
+                        this.showMessage('Failed to refresh sentiment', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async runAnalysis() {
+                    this.isLoading = true;
+                    try {
+                        const result = await this.apiCall('/briefing/analyze', { method: 'POST' });
+                        this.showMessage(`Analyzed ${result.redditAnalyzed + result.wordpressAnalyzed} content items`);
+                    } catch (error) {
+                        this.showMessage('Failed to run analysis', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async runFullCrawl() {
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall('/admin/crawl/full', { method: 'POST' });
+                        this.showMessage('Full crawl completed!');
+                        await this.loadStats();
+                    } catch (error) {
+                        this.showMessage('Failed to run full crawl', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async runRedditCrawl() {
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall('/admin/crawl/reddit', { method: 'POST' });
+                        this.showMessage('Reddit crawl completed!');
+                        await this.loadStats();
+                    } catch (error) {
+                        this.showMessage('Failed to run Reddit crawl', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async runWordPressCrawl() {
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall('/admin/crawl/wordpress', { method: 'POST' });
+                        this.showMessage('WordPress crawl completed!');
+                        await this.loadStats();
+                    } catch (error) {
+                        this.showMessage('Failed to run WordPress crawl', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async updateMarketData() {
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall('/admin/crawl/market', { method: 'POST' });
+                        this.showMessage('Market data updated!');
+                        await this.loadSentiment();
+                    } catch (error) {
+                        this.showMessage('Failed to update market data', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async addRedditSource() {
+                    if (!this.newRedditSource.subredditName) {
+                        this.showMessage('Subreddit name is required', 'error');
+                        return;
+                    }
+                    
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall('/admin/reddit/sources', {
+                            method: 'POST',
+                            body: JSON.stringify(this.newRedditSource)
+                        });
+                        this.showMessage('Reddit source added successfully!');
+                        this.showAddRedditForm = false;
+                        this.resetRedditForm();
+                        await this.loadSources();
+                    } catch (error) {
+                        this.showMessage('Failed to add Reddit source', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async addWordPressSource() {
+                    if (!this.newWordPressSource.siteUrl || !this.newWordPressSource.siteName) {
+                        this.showMessage('Site URL and name are required', 'error');
+                        return;
+                    }
+                    
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall('/admin/wordpress/sources', {
+                            method: 'POST',
+                            body: JSON.stringify(this.newWordPressSource)
+                        });
+                        this.showMessage('WordPress source added successfully!');
+                        this.showAddWordPressForm = false;
+                        this.resetWordPressForm();
+                        await this.loadSources();
+                    } catch (error) {
+                        this.showMessage('Failed to add WordPress source', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async toggleRedditSource(source) {
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall(`/admin/reddit/sources/${source.id}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ isActive: !source.isActive })
+                        });
+                        this.showMessage(`Reddit source ${source.isActive ? 'disabled' : 'enabled'}!`);
+                        await this.loadSources();
+                    } catch (error) {
+                        this.showMessage('Failed to toggle Reddit source', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async toggleWordPressSource(source) {
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall(`/admin/wordpress/sources/${source.id}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ isActive: !source.isActive })
+                        });
+                        this.showMessage(`WordPress source ${source.isActive ? 'disabled' : 'enabled'}!`);
+                        await this.loadSources();
+                    } catch (error) {
+                        this.showMessage('Failed to toggle WordPress source', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async deleteRedditSource(id) {
+                    if (!confirm('Are you sure you want to delete this Reddit source?')) return;
+                    
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall(`/admin/reddit/sources/${id}`, { method: 'DELETE' });
+                        this.showMessage('Reddit source deleted!');
+                        await this.loadSources();
+                    } catch (error) {
+                        this.showMessage('Failed to delete Reddit source', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async deleteWordPressSource(id) {
+                    if (!confirm('Are you sure you want to delete this WordPress source?')) return;
+                    
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall(`/admin/wordpress/sources/${id}`, { method: 'DELETE' });
+                        this.showMessage('WordPress source deleted!');
+                        await this.loadSources();
+                    } catch (error) {
+                        this.showMessage('Failed to delete WordPress source', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                resetRedditForm() {
+                    this.newRedditSource = { subredditName: '', description: '', crawlIntervalHours: 24 };
+                },
+
+                resetWordPressForm() {
+                    this.newWordPressSource = { siteUrl: '', siteName: '', description: '', crawlIntervalHours: 12 };
+                },
+
+                showMessage(text, type = 'success') {
+                    this.message = text;
+                    this.messageType = type;
+                    setTimeout(() => this.message = '', 5000);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

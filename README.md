@@ -1,133 +1,288 @@
-# CryptoTraders Morning Briefing
+# CryptoTraders Morning Briefing 🚀
 
-Eine Anwendung, die verschiedene Datenquellen wie Reddit, Preisbewegungen, Crypto-Blogs und News-Sites aggregiert und nützliche Trading-Briefings erstellt.
+Ein AI-basiertes System zur Aggregation und Analyse von Kryptowährungs-Nachrichten und -Sentiment aus verschiedenen Quellen wie Reddit, WordPress-Blogs und Marktdaten.
 
-## 🚀 Aktueller Projektstand
+## 🌟 Funktionen
 
-### ✅ Abgeschlossen
-- **Projekt-Setup**: NodeJS, TypeScript, package.json konfiguriert
-- **Docker**: Docker & Docker-Compose Konfiguration erstellt
-- **Projektstruktur**: Ordnerstruktur für src/, entities/, services/, etc. angelegt
-- **Testing**: Jest-Konfiguration für TDD eingerichtet
-- **Code-Qualität**: ESLint und Prettier konfiguriert
-- **Konfiguration**: Umgebungsvariablen-Management mit .env
-- **Logging**: Winston-Logger implementiert
-- **Server**: Express-Grundgerüst mit Health-Check und Error-Handling
-- **Database**: TypeORM-Konfiguration für MySQL
-- **Entities**: User-Entity für Reputation Management begonnen
+- **Multi-Source Data Crawling**: Automatisches Crawlen von Reddit-Subreddits und WordPress-Blogs
+- **AI-Powered Sentiment Analysis**: Verwendet OpenAI für intelligente Sentiment-Analyse
+- **Market Data Integration**: Binance API für Marktdaten und Greed & Fear Index
+- **Morning Briefing Generation**: Automatische Generierung von täglichen Marktanalysen
+- **Web Interface**: Moderne, responsive Web-UI für Administration und Überwachung
+- **RESTful API**: Vollständige REST API für Integration und Automation
 
-### 🔄 In Arbeit
-- Entity-Modellierung (RedditUser, WordPressUser, Content-Entities)
-- Datenbank-Migrationen
-- Repository-Pattern Implementation
+## 📋 Technologie-Stack
 
-### 📋 Nächste Schritte
-1. Vollständige Entity-Modellierung abschließen
-2. Datenbank-Migrationen einrichten
-3. Repository-Klassen implementieren
-4. API-Endpoints für CRUD-Operationen
-5. External API-Integration (Reddit, Binance, Fear&Greed Index)
+### Backend
+- **Node.js** & **TypeScript** - Typsichere Server-Entwicklung
+- **Express.js** - Web-Framework
+- **TypeORM** - ORM für Datenbankoperationen
+- **MySQL** - Relationale Datenbank
+- **OpenAI API** - AI-basierte Analyse
+- **Redis** (optional) - Caching
 
-## 🏗️ Technologie-Stack
+### Frontend
+- **HTML5** & **Vanilla JavaScript**
+- **Alpine.js** - Reaktive UI-Framework
+- **TailwindCSS** - Utility-first CSS Framework
 
-- **Backend**: NodeJS, TypeScript, Express
-- **Datenbank**: MySQL mit TypeORM
-- **Testing**: Jest
-- **Code-Qualität**: ESLint, Prettier
-- **Logging**: Winston
-- **Containerisierung**: Docker, Docker-Compose
-- **APIs**: Reddit (snoowrap), Binance, OpenAI
+### External APIs
+- **Reddit API** (snoowrap)
+- **WordPress REST API**
+- **Binance API**
+- **Alternative.me Fear & Greed Index**
 
-## 🚀 Schnellstart
+## 🚀 Quick Start
 
-### Voraussetzungen
-- Node.js (>= 18)
-- Docker & Docker-Compose
-- MySQL (für lokale Entwicklung)
+### 1. Voraussetzungen
 
-### Installation
+- Node.js (v18+)
+- MySQL (v8.0+)
+- npm oder yarn
+
+### 2. Installation
 
 ```bash
+# Repository klonen
+git clone https://github.com/websupporter/early-bird.git
+cd early-bird
+
 # Dependencies installieren
 npm install
 
-# Umgebungsvariablen konfigurieren
+# Environment-Variablen einrichten
 cp .env.example .env
-# Bearbeite .env mit deinen API-Keys
-
-# Docker-Container starten
-npm run docker:up
-
-# Entwicklungsserver starten
-npm run dev
 ```
 
-### Verfügbare Scripts
+### 3. Konfiguration
+
+Bearbeiten Sie die `.env` Datei:
+
+```env
+# Database
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=cryptouser
+DB_PASSWORD=cryptopass123
+DB_NAME=cryptotraders
+
+# OpenAI API
+OPENAI_API_KEY=your_openai_api_key
+
+# Reddit API
+REDDIT_CLIENT_ID=your_reddit_client_id
+REDDIT_CLIENT_SECRET=your_reddit_client_secret
+REDDIT_USERNAME=your_reddit_username
+REDDIT_PASSWORD=your_reddit_password
+```
+
+### 4. Datenbank einrichten
 
 ```bash
-npm run build          # TypeScript kompilieren
-npm run start          # Produktionsserver starten
-npm run dev            # Entwicklungsserver mit Hot-Reload
-npm run test           # Tests ausführen
-npm run test:watch     # Tests im Watch-Mode
-npm run test:coverage  # Test-Coverage generieren
-npm run lint           # Code-Linting
-npm run lint:fix       # Auto-Fix für Linting-Fehler
-npm run format         # Code formatieren
-npm run docker:up      # Docker-Container starten
-npm run docker:down    # Docker-Container stoppen
+# MySQL Datenbank erstellen
+mysql -u root -p
+CREATE DATABASE cryptotraders;
+CREATE USER 'cryptouser'@'localhost' IDENTIFIED BY 'cryptopass123';
+GRANT ALL PRIVILEGES ON cryptotraders.* TO 'cryptouser'@'localhost';
 ```
 
-## 📊 API-Endpoints
+### 5. Anwendung starten
 
-### Health & Status
-```
-GET /health           # Server-Health-Check
-GET /api/v1/status    # API-Status
-```
+```bash
+# Entwicklungsmodus
+npm run dev
 
-### Geplante Endpoints
-```
-GET /api/v1/users              # Alle User abrufen
-POST /api/v1/users             # Neuen User erstellen
-GET /api/v1/reddit/sources     # Reddit-Quellen verwalten
-GET /api/v1/wordpress/sources  # WordPress-Quellen verwalten
-GET /api/v1/binance/symbols    # Binance-Symbole verwalten
-GET /api/v1/briefings          # Morning Briefings abrufen
-POST /api/v1/briefings/generate # Neues Briefing generieren
+# Production build
+npm run build
+npm start
 ```
 
-## 🗄️ Datenbank-Schema
+Die Anwendung ist dann verfügbar unter:
+- **Frontend**: http://localhost:3001
+- **API Dokumentation**: http://localhost:3001/api
+- **Health Check**: http://localhost:3001/health
 
-### Entities (geplant/in Entwicklung)
-- `User` - Zentrale User-Verwaltung für Reputation Management
-- `RedditUser` - Reddit-spezifische Benutzerdaten
-- `RedditContent` - Reddit-Posts und -Kommentare
-- `WordPressUser` - WordPress-Autoren
-- `WordPressContent` - Blog-Artikel
-- `CandleStick` - Binance-Preisdaten
-- `GreedFearIndex` - Fear & Greed Index-Daten
-- `MorningBriefing` - Generierte Briefings
+## 📊 API Endpoints
 
-## 🔧 Konfiguration
+### Briefing API
 
-Die Anwendung verwendet Umgebungsvariablen für die Konfiguration. Siehe `.env.example` für alle verfügbaren Optionen.
+| Method | Endpoint | Beschreibung |
+|--------|----------|--------------|
+| POST | `/api/briefing/generate` | Neues Morning Briefing generieren |
+| GET | `/api/briefing/sentiment` | Aktuelle Sentiment-Übersicht |
+| GET | `/api/briefing/history` | Historische Briefings |
+| POST | `/api/briefing/analyze` | Batch-Analyse von Content |
+| GET | `/api/briefing/status` | System-Status |
 
-### API-Keys benötigt
-- Reddit API (Client ID, Secret, Username, Password)
-- Binance API (Key, Secret)
-- OpenAI API (Key)
+### Admin API
 
-## 📈 Entwicklungsfortschritt
+| Method | Endpoint | Beschreibung |
+|--------|----------|--------------|
+| GET | `/api/admin/reddit/sources` | Reddit-Quellen verwalten |
+| POST | `/api/admin/reddit/sources` | Neue Reddit-Quelle hinzufügen |
+| GET | `/api/admin/wordpress/sources` | WordPress-Quellen verwalten |
+| POST | `/api/admin/crawl/full` | Vollständiges Crawling starten |
+| GET | `/api/admin/stats` | System-Statistiken |
 
-Aktuelle Todo-Liste und Fortschritt siehe `todo.MD`.
+## � Architektur
 
-## 🤝 Entwicklung
+```
+src/
+├── api/                    # REST API Layer
+│   ├── routes/            # Express Routes
+│   └── app.ts             # Express App Setup
+├── config/                # Konfiguration
+│   ├── database.ts        # TypeORM Konfiguration
+│   └── logger.ts          # Logging Setup
+├── entities/              # TypeORM Entities
+│   ├── User.ts           # User Entity
+│   ├── RedditContent.ts  # Reddit Content Entity
+│   └── ...               # Weitere Entities
+├── repositories/          # Data Access Layer
+│   ├── BaseRepository.ts # Abstract Base Repository
+│   └── ...               # Spezifische Repositories
+├── services/              # Business Logic Layer
+│   ├── OpenAIService.ts  # AI/ML Services
+│   ├── RedditApiService.ts
+│   └── ...               # Weitere Services
+├── crawlers/              # Data Crawling Layer
+│   ├── MasterCrawlerService.ts
+│   └── ...               # Spezifische Crawler
+└── index.ts              # Application Entry Point
+```
 
-Das Projekt folgt Test Driven Development (TDD) Prinzipien:
+## 🤖 AI Integration
 
-1. **Red Phase**: Test schreiben, der fehlschlägt
-2. **Green Phase**: Minimale Implementierung für Test-Success
-3. **Refactor Phase**: Code-Optimierung
+Das System nutzt OpenAI für:
 
-Objektorientiertes Design für gute Testbarkeit und Wartbarkeit.
+1. **Sentiment Analysis**: Bewertung der Marktstimmung in Posts und Artikeln
+2. **Keyword Extraction**: Automatische Extraktion relevanter Begriffe
+3. **Content Classification**: Kategorisierung von Inhalten
+4. **Morning Briefing**: Automatische Generierung von Marktanalysen
+
+## 📈 Data Sources
+
+### Reddit
+- Konfigurierbare Subreddits (z.B. r/cryptocurrency, r/bitcoin)
+- Automatisches Crawling von Posts und Kommentaren
+- Sentiment-Analyse und Engagement-Metriken
+
+### WordPress Blogs
+- Crypto-News-Websites über WordPress REST API
+- Expert-Meinungen und Marktanalysen
+- Kategorisierung nach Tags und Kategorien
+
+### Market Data
+- **Binance API**: Live-Kryptowährungskurse und Handelsvolumen
+- **Fear & Greed Index**: Marktsentiment-Indikator
+- Historische Daten für Trend-Analyse
+
+## 🛡️ Security Features
+
+- **Input Validation**: Umfassende Validierung aller Eingaben
+- **Rate Limiting**: Schutz vor API-Missbrauch
+- **CORS Configuration**: Sichere Cross-Origin-Requests
+- **Environment Variables**: Sichere Speicherung von API-Schlüsseln
+- **Error Handling**: Robuste Fehlerbehandlung
+
+## � Automated Workflows
+
+Das System kann so konfiguriert werden, dass es automatisch:
+
+1. **Stündlich**: Reddit und WordPress crawlt
+2. **Alle 15 Minuten**: Marktdaten aktualisiert
+3. **Täglich um 6 Uhr**: Morning Briefing generiert
+4. **Kontinuierlich**: Sentiment-Analyse für neue Inhalte
+
+## 📝 Development
+
+### Scripts
+
+```bash
+npm run dev          # Development server mit hot reload
+npm run build        # Production build
+npm run test         # Tests ausführen
+npm run test:watch   # Tests im Watch-Modus
+npm run lint         # Code linting
+npm run format       # Code formatting
+```
+
+### Debugging
+
+Das System nutzt strukturiertes Logging:
+
+```typescript
+// Logs werden automatisch in Console und Datei geschrieben
+console.log('Info message');
+console.error('Error message');
+```
+
+### Testing
+
+```bash
+# Unit Tests
+npm run test
+
+# Integration Tests
+npm run test:integration
+
+# Coverage Report
+npm run test:coverage
+```
+
+## 🚦 Production Deployment
+
+### Docker Setup
+
+```dockerfile
+# Dockerfile wird bereitgestellt
+docker-compose up -d
+```
+
+### Environment Configuration
+
+Produktionseinstellungen:
+
+```env
+NODE_ENV=production
+PORT=3001
+DB_HOST=production-db-host
+# ... weitere Production-Settings
+```
+
+### Health Monitoring
+
+- Health Check Endpoint: `/health`
+- Metrics und Monitoring über Express Middleware
+- Error Logging und Alerting
+
+## 🤝 Contributing
+
+1. Fork das Repository
+2. Erstelle einen Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit deine Änderungen (`git commit -m 'Add some AmazingFeature'`)
+4. Push zum Branch (`git push origin feature/AmazingFeature`)
+5. Öffne einen Pull Request
+
+## 📄 License
+
+Dieses Projekt ist unter der ISC Lizenz lizenziert.
+
+## 🔗 Links
+
+- [OpenAI API Documentation](https://platform.openai.com/docs)
+- [Reddit API Documentation](https://www.reddit.com/dev/api/)
+- [Binance API Documentation](https://binance-docs.github.io/apidocs/)
+- [TypeORM Documentation](https://typeorm.io/)
+
+## ⚠️ Wichtige Hinweise
+
+1. **API Limits**: Beachten Sie die Rate Limits der verschiedenen APIs
+2. **Kosten**: OpenAI API verursacht Kosten basierend auf Nutzung
+3. **Reddit API**: Erfordert Reddit Developer Account
+4. **Datenbank**: Regelmäßige Backups empfohlen
+5. **Security**: API-Schlüssel niemals in Code commiten
+
+---
+
+Erstellt mit ❤️ für die Crypto-Trading-Community
