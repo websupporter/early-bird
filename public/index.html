@@ -6,13 +6,312 @@
     <title>CryptoTraders Morning Briefing</title>
     <link rel="stylesheet" href="/css/tailwind.min.css">
     <link rel="stylesheet" href="/css/fontawesome.min.css">
-    <script src="/js/alpine.min.js" defer></script>
     <style>
         [x-cloak] { display: none; }
     </style>
+    <script>
+        function cryptoApp() {
+            return {
+                currentTab: 'dashboard',
+                isLoading: false,
+                message: '',
+                messageType: 'success',
+                
+                // Data
+                status: {},
+                sentiment: { redditSentiment: 0, wordpressSentiment: 0, greedFearIndex: 50 },
+                stats: {},
+                currentBriefing: null,
+                redditSources: [],
+                wordpressSources: [],
+                
+                // Forms
+                showAddRedditForm: false,
+                showAddWordPressForm: false,
+                newRedditSource: { subredditName: '', description: '', crawlIntervalHours: 24 },
+                newWordPressSource: { siteUrl: '', siteName: '', description: '', crawlIntervalHours: 12 },
+
+                async init() {
+                    await this.loadInitialData();
+                },
+
+                async loadInitialData() {
+                    await Promise.all([
+                        this.loadStatus(),
+                        this.loadSentiment(),
+                        this.loadStats(),
+                        this.loadSources()
+                    ]);
+                },
+
+                async apiCall(url, options = {}) {
+                    try {
+                        const response = await fetch(`/api${url}`, {
+                            headers: { 'Content-Type': 'application/json' },
+                            ...options
+                        });
+                        const data = await response.json();
+                        if (!data.success) throw new Error(data.message || 'API call failed');
+                        return data.data;
+                    } catch (error) {
+                        this.showMessage(error.message, 'error');
+                        throw error;
+                    }
+                },
+
+                async loadStatus() {
+                    try {
+                        this.status = await this.apiCall('/briefing/status');
+                    } catch (error) {
+                        console.error('Failed to load status:', error);
+                    }
+                },
+
+                async loadSentiment() {
+                    try {
+                        this.sentiment = await this.apiCall('/briefing/sentiment');
+                    } catch (error) {
+                        console.error('Failed to load sentiment:', error);
+                    }
+                },
+
+                async loadStats() {
+                    try {
+                        this.stats = await this.apiCall('/admin/stats');
+                    } catch (error) {
+                        console.error('Failed to load stats:', error);
+                    }
+                },
+
+                async loadSources() {
+                    try {
+                        const [reddit, wordpress] = await Promise.all([
+                            this.apiCall('/admin/reddit/sources'),
+                            this.apiCall('/admin/wordpress/sources')
+                        ]);
+                        this.redditSources = reddit;
+                        this.wordpressSources = wordpress;
+                    } catch (error) {
+                        console.error('Failed to load sources:', error);
+                    }
+                },
+
+                async generateBriefing() {
+                    this.isLoading = true;
+                    try {
+                        this.currentBriefing = await this.apiCall('/briefing/generate', { method: 'POST' });
+                        this.showMessage('Morning briefing generated successfully!');
+                    } catch (error) {
+                        this.showMessage('Failed to generate briefing', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async refreshSentiment() {
+                    this.isLoading = true;
+                    try {
+                        await this.loadSentiment();
+                        this.showMessage('Sentiment data refreshed!');
+                    } catch (error) {
+                        this.showMessage('Failed to refresh sentiment', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async runAnalysis() {
+                    this.isLoading = true;
+                    try {
+                        const result = await this.apiCall('/briefing/analyze', { method: 'POST' });
+                        this.showMessage(`Analyzed ${result.redditAnalyzed + result.wordpressAnalyzed} content items`);
+                    } catch (error) {
+                        this.showMessage('Failed to run analysis', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async runFullCrawl() {
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall('/admin/crawl/full', { method: 'POST' });
+                        this.showMessage('Full crawl completed!');
+                        await this.loadStats();
+                    } catch (error) {
+                        this.showMessage('Failed to run full crawl', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async runRedditCrawl() {
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall('/admin/crawl/reddit', { method: 'POST' });
+                        this.showMessage('Reddit crawl completed!');
+                        await this.loadStats();
+                    } catch (error) {
+                        this.showMessage('Failed to run Reddit crawl', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async runWordPressCrawl() {
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall('/admin/crawl/wordpress', { method: 'POST' });
+                        this.showMessage('WordPress crawl completed!');
+                        await this.loadStats();
+                    } catch (error) {
+                        this.showMessage('Failed to run WordPress crawl', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async updateMarketData() {
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall('/admin/crawl/market', { method: 'POST' });
+                        this.showMessage('Market data updated!');
+                        await this.loadSentiment();
+                    } catch (error) {
+                        this.showMessage('Failed to update market data', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async addRedditSource() {
+                    if (!this.newRedditSource.subredditName) {
+                        this.showMessage('Subreddit name is required', 'error');
+                        return;
+                    }
+                    
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall('/admin/reddit/sources', {
+                            method: 'POST',
+                            body: JSON.stringify(this.newRedditSource)
+                        });
+                        this.showMessage('Reddit source added successfully!');
+                        this.showAddRedditForm = false;
+                        this.resetRedditForm();
+                        await this.loadSources();
+                    } catch (error) {
+                        this.showMessage('Failed to add Reddit source', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async addWordPressSource() {
+                    if (!this.newWordPressSource.siteUrl || !this.newWordPressSource.siteName) {
+                        this.showMessage('Site URL and name are required', 'error');
+                        return;
+                    }
+                    
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall('/admin/wordpress/sources', {
+                            method: 'POST',
+                            body: JSON.stringify(this.newWordPressSource)
+                        });
+                        this.showMessage('WordPress source added successfully!');
+                        this.showAddWordPressForm = false;
+                        this.resetWordPressForm();
+                        await this.loadSources();
+                    } catch (error) {
+                        this.showMessage('Failed to add WordPress source', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async toggleRedditSource(source) {
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall(`/admin/reddit/sources/${source.id}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ isActive: !source.isActive })
+                        });
+                        this.showMessage(`Reddit source ${source.isActive ? 'disabled' : 'enabled'}!`);
+                        await this.loadSources();
+                    } catch (error) {
+                        this.showMessage('Failed to toggle Reddit source', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async toggleWordPressSource(source) {
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall(`/admin/wordpress/sources/${source.id}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ isActive: !source.isActive })
+                        });
+                        this.showMessage(`WordPress source ${source.isActive ? 'disabled' : 'enabled'}!`);
+                        await this.loadSources();
+                    } catch (error) {
+                        this.showMessage('Failed to toggle WordPress source', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async deleteRedditSource(id) {
+                    if (!confirm('Are you sure you want to delete this Reddit source?')) return;
+                    
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall(`/admin/reddit/sources/${id}`, { method: 'DELETE' });
+                        this.showMessage('Reddit source deleted!');
+                        await this.loadSources();
+                    } catch (error) {
+                        this.showMessage('Failed to delete Reddit source', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async deleteWordPressSource(id) {
+                    if (!confirm('Are you sure you want to delete this WordPress source?')) return;
+                    
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall(`/admin/wordpress/sources/${id}`, { method: 'DELETE' });
+                        this.showMessage('WordPress source deleted!');
+                        await this.loadSources();
+                    } catch (error) {
+                        this.showMessage('Failed to delete WordPress source', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                resetRedditForm() {
+                    this.newRedditSource = { subredditName: '', description: '', crawlIntervalHours: 24 };
+                },
+
+                resetWordPressForm() {
+                    this.newWordPressSource = { siteUrl: '', siteName: '', description: '', crawlIntervalHours: 12 };
+                },
+
+                showMessage(text, type = 'success') {
+                    this.message = text;
+                    this.messageType = type;
+                    setTimeout(() => this.message = '', 5000);
+                }
+            }
+        }
+    </script>
+    <script src="/js/alpine.min.js" defer></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <div x-data="cryptoApp()" x-cloak class="min-h-screen">
+    <div x-data="cryptoApp()" x-init="init()" x-cloak class="min-h-screen">
         <!-- Navigation -->
         <nav class="bg-blue-900 text-white shadow-lg">
             <div class="container mx-auto px-4">
@@ -368,307 +667,7 @@
                 <p x-text="message"></p>
                 <button @click="message = ''" class="ml-4 text-xl leading-none">&times;</button>
             </div>
-        </div>
+                </div>
     </div>
-
-    <script>
-        function cryptoApp() {
-            return {
-                currentTab: 'dashboard',
-                isLoading: false,
-                message: '',
-                messageType: 'success',
-                
-                // Data
-                status: {},
-                sentiment: { redditSentiment: 0, wordpressSentiment: 0, greedFearIndex: 50 },
-                stats: {},
-                currentBriefing: null,
-                redditSources: [],
-                wordpressSources: [],
-                
-                // Forms
-                showAddRedditForm: false,
-                showAddWordPressForm: false,
-                newRedditSource: { subredditName: '', description: '', crawlIntervalHours: 24 },
-                newWordPressSource: { siteUrl: '', siteName: '', description: '', crawlIntervalHours: 12 },
-
-                async init() {
-                    await this.loadInitialData();
-                },
-
-                async loadInitialData() {
-                    await Promise.all([
-                        this.loadStatus(),
-                        this.loadSentiment(),
-                        this.loadStats(),
-                        this.loadSources()
-                    ]);
-                },
-
-                async apiCall(url, options = {}) {
-                    try {
-                        const response = await fetch(`/api${url}`, {
-                            headers: { 'Content-Type': 'application/json' },
-                            ...options
-                        });
-                        const data = await response.json();
-                        if (!data.success) throw new Error(data.message || 'API call failed');
-                        return data.data;
-                    } catch (error) {
-                        this.showMessage(error.message, 'error');
-                        throw error;
-                    }
-                },
-
-                async loadStatus() {
-                    try {
-                        this.status = await this.apiCall('/briefing/status');
-                    } catch (error) {
-                        console.error('Failed to load status:', error);
-                    }
-                },
-
-                async loadSentiment() {
-                    try {
-                        this.sentiment = await this.apiCall('/briefing/sentiment');
-                    } catch (error) {
-                        console.error('Failed to load sentiment:', error);
-                    }
-                },
-
-                async loadStats() {
-                    try {
-                        this.stats = await this.apiCall('/admin/stats');
-                    } catch (error) {
-                        console.error('Failed to load stats:', error);
-                    }
-                },
-
-                async loadSources() {
-                    try {
-                        const [reddit, wordpress] = await Promise.all([
-                            this.apiCall('/admin/reddit/sources'),
-                            this.apiCall('/admin/wordpress/sources')
-                        ]);
-                        this.redditSources = reddit;
-                        this.wordpressSources = wordpress;
-                    } catch (error) {
-                        console.error('Failed to load sources:', error);
-                    }
-                },
-
-                async generateBriefing() {
-                    this.isLoading = true;
-                    try {
-                        this.currentBriefing = await this.apiCall('/briefing/generate', { method: 'POST' });
-                        this.showMessage('Morning briefing generated successfully!');
-                    } catch (error) {
-                        this.showMessage('Failed to generate briefing', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                async refreshSentiment() {
-                    this.isLoading = true;
-                    try {
-                        await this.loadSentiment();
-                        this.showMessage('Sentiment data refreshed!');
-                    } catch (error) {
-                        this.showMessage('Failed to refresh sentiment', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                async runAnalysis() {
-                    this.isLoading = true;
-                    try {
-                        const result = await this.apiCall('/briefing/analyze', { method: 'POST' });
-                        this.showMessage(`Analyzed ${result.redditAnalyzed + result.wordpressAnalyzed} content items`);
-                    } catch (error) {
-                        this.showMessage('Failed to run analysis', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                async runFullCrawl() {
-                    this.isLoading = true;
-                    try {
-                        await this.apiCall('/admin/crawl/full', { method: 'POST' });
-                        this.showMessage('Full crawl completed!');
-                        await this.loadStats();
-                    } catch (error) {
-                        this.showMessage('Failed to run full crawl', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                async runRedditCrawl() {
-                    this.isLoading = true;
-                    try {
-                        await this.apiCall('/admin/crawl/reddit', { method: 'POST' });
-                        this.showMessage('Reddit crawl completed!');
-                        await this.loadStats();
-                    } catch (error) {
-                        this.showMessage('Failed to run Reddit crawl', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                async runWordPressCrawl() {
-                    this.isLoading = true;
-                    try {
-                        await this.apiCall('/admin/crawl/wordpress', { method: 'POST' });
-                        this.showMessage('WordPress crawl completed!');
-                        await this.loadStats();
-                    } catch (error) {
-                        this.showMessage('Failed to run WordPress crawl', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                async updateMarketData() {
-                    this.isLoading = true;
-                    try {
-                        await this.apiCall('/admin/crawl/market', { method: 'POST' });
-                        this.showMessage('Market data updated!');
-                        await this.loadSentiment();
-                    } catch (error) {
-                        this.showMessage('Failed to update market data', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                async addRedditSource() {
-                    if (!this.newRedditSource.subredditName) {
-                        this.showMessage('Subreddit name is required', 'error');
-                        return;
-                    }
-                    
-                    this.isLoading = true;
-                    try {
-                        await this.apiCall('/admin/reddit/sources', {
-                            method: 'POST',
-                            body: JSON.stringify(this.newRedditSource)
-                        });
-                        this.showMessage('Reddit source added successfully!');
-                        this.showAddRedditForm = false;
-                        this.resetRedditForm();
-                        await this.loadSources();
-                    } catch (error) {
-                        this.showMessage('Failed to add Reddit source', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                async addWordPressSource() {
-                    if (!this.newWordPressSource.siteUrl || !this.newWordPressSource.siteName) {
-                        this.showMessage('Site URL and name are required', 'error');
-                        return;
-                    }
-                    
-                    this.isLoading = true;
-                    try {
-                        await this.apiCall('/admin/wordpress/sources', {
-                            method: 'POST',
-                            body: JSON.stringify(this.newWordPressSource)
-                        });
-                        this.showMessage('WordPress source added successfully!');
-                        this.showAddWordPressForm = false;
-                        this.resetWordPressForm();
-                        await this.loadSources();
-                    } catch (error) {
-                        this.showMessage('Failed to add WordPress source', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                async toggleRedditSource(source) {
-                    this.isLoading = true;
-                    try {
-                        await this.apiCall(`/admin/reddit/sources/${source.id}`, {
-                            method: 'PUT',
-                            body: JSON.stringify({ isActive: !source.isActive })
-                        });
-                        this.showMessage(`Reddit source ${source.isActive ? 'disabled' : 'enabled'}!`);
-                        await this.loadSources();
-                    } catch (error) {
-                        this.showMessage('Failed to toggle Reddit source', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                async toggleWordPressSource(source) {
-                    this.isLoading = true;
-                    try {
-                        await this.apiCall(`/admin/wordpress/sources/${source.id}`, {
-                            method: 'PUT',
-                            body: JSON.stringify({ isActive: !source.isActive })
-                        });
-                        this.showMessage(`WordPress source ${source.isActive ? 'disabled' : 'enabled'}!`);
-                        await this.loadSources();
-                    } catch (error) {
-                        this.showMessage('Failed to toggle WordPress source', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                async deleteRedditSource(id) {
-                    if (!confirm('Are you sure you want to delete this Reddit source?')) return;
-                    
-                    this.isLoading = true;
-                    try {
-                        await this.apiCall(`/admin/reddit/sources/${id}`, { method: 'DELETE' });
-                        this.showMessage('Reddit source deleted!');
-                        await this.loadSources();
-                    } catch (error) {
-                        this.showMessage('Failed to delete Reddit source', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                async deleteWordPressSource(id) {
-                    if (!confirm('Are you sure you want to delete this WordPress source?')) return;
-                    
-                    this.isLoading = true;
-                    try {
-                        await this.apiCall(`/admin/wordpress/sources/${id}`, { method: 'DELETE' });
-                        this.showMessage('WordPress source deleted!');
-                        await this.loadSources();
-                    } catch (error) {
-                        this.showMessage('Failed to delete WordPress source', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                resetRedditForm() {
-                    this.newRedditSource = { subredditName: '', description: '', crawlIntervalHours: 24 };
-                },
-
-                resetWordPressForm() {
-                    this.newWordPressSource = { siteUrl: '', siteName: '', description: '', crawlIntervalHours: 12 };
-                },
-
-                showMessage(text, type = 'success') {
-                    this.message = text;
-                    this.messageType = type;
-                    setTimeout(() => this.message = '', 5000);
-                }
-            }
-        }
-    </script>
 </body>
 </html>
