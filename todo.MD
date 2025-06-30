@@ -41,15 +41,18 @@
 [x] Create WordPressSourceRepository
 
 ### RSS Feeds
-[ ] Create table to store websites from RSS Feeds
-[ ] Create table for feeds to crawl
-[ ] Create FeedContent Entity
-[ ] Create FeedSource Entity
-[ ] Create FeedContentRepository
-[ ] Create FeedSourceRepository
-[ ] Integrate Sentiment analysis, keyword extraction
-[ ] Integrate into Morning Briefing
-[ ] UI Integration to manage feeds
+[x] Create table to store websites from RSS Feeds
+[x] Create table for feeds to crawl
+[x] Create FeedContent Entity
+[x] Create FeedSource Entity
+[x] Create FeedContentRepository
+[x] Create FeedSourceRepository
+[x] Integrate Sentiment analysis, keyword extraction
+[x] Integrate into Morning Briefing
+[x] UI Integration to manage feeds
+[x] API endpoints for RSS feed management
+[x] RSS feed crawler service integration
+[x] Full CRUD operations for RSS feeds in UI
 
 ### Better keyword storage
 [ ] Store extracted keywords in its own database
