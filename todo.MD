@@ -47,6 +47,13 @@
 [ ] Create FeedSource Entity
 [ ] Create FeedContentRepository
 [ ] Create FeedSourceRepository
+[ ] Integrate Sentiment analysis, keyword extraction
+[ ] Integrate into Morning Briefing
+[ ] UI Integration to manage feeds
+
+### Better keyword storage
+[ ] Store extracted keywords in its own database
+[ ] Link content to the keywords in the separated database
 
 ## ✅ COMPLETED - External API Integration
 ### Reddit API
@@ -196,7 +203,7 @@
 - ✅ Frontend assets ready
 - ✅ API documentation complete
 
-### **Optional Future Enhancements:**
+### **Later:**
 [ ] WebSocket real-time updates
 [ ] Email notification system
 [ ] Advanced charting components
