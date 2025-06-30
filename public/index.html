@@ -28,8 +28,10 @@
                 // Forms
                 showAddRedditForm: false,
                 showAddWordPressForm: false,
+                showEditWordPressForm: false,
                 newRedditSource: { subredditName: '', description: '', crawlIntervalHours: 24 },
                 newWordPressSource: { siteUrl: '', siteName: '', description: '', crawlIntervalHours: 12 },
+                editWordPressSource: { id: null, siteUrl: '', siteName: '', description: '', crawlIntervalHours: 12, apiKey: '' },
 
                 async init() {
                     await this.loadInitialData();
@@ -161,8 +163,30 @@
                 async runWordPressCrawl() {
                     this.isLoading = true;
                     try {
-                        await this.apiCall('/admin/crawl/wordpress', { method: 'POST' });
-                        this.showMessage('WordPress crawl completed!');
+                        const result = await this.apiCall('/admin/crawl/wordpress', { method: 'POST' });
+                        
+                        if (result.summary) {
+                            const summary = result.summary;
+                            let message = `WordPress crawl completed! ${summary.totalNewPosts} new posts from ${summary.totalSources} sources.`;
+                            
+                            if (summary.totalSkippedPosts > 0) {
+                                message += ` ${summary.totalSkippedPosts} posts skipped.`;
+                            }
+                            
+                            if (summary.totalWarnings > 0) {
+                                message += ` ${summary.totalWarnings} warnings.`;
+                            }
+                            
+                            if (summary.totalErrors > 0) {
+                                message += ` ${summary.totalErrors} errors occurred.`;
+                                this.showMessage(message, 'error');
+                            } else {
+                                this.showMessage(message);
+                            }
+                        } else {
+                            this.showMessage('WordPress crawl completed!');
+                        }
+                        
                         await this.loadStats();
                     } catch (error) {
                         this.showMessage('Failed to run WordPress crawl', 'error');
@@ -225,6 +249,86 @@
                         await this.loadSources();
                     } catch (error) {
                         this.showMessage('Failed to add WordPress source', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async updateWordPressSource() {
+                    if (!this.editWordPressSource.siteUrl || !this.editWordPressSource.siteName) {
+                        this.showMessage('Site URL and name are required', 'error');
+                        return;
+                    }
+                    
+                    this.isLoading = true;
+                    try {
+                        await this.apiCall(`/admin/wordpress/sources/${this.editWordPressSource.id}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({
+                                siteUrl: this.editWordPressSource.siteUrl,
+                                siteName: this.editWordPressSource.siteName,
+                                description: this.editWordPressSource.description,
+                                crawlIntervalHours: this.editWordPressSource.crawlIntervalHours,
+                                apiKey: this.editWordPressSource.apiKey
+                            })
+                        });
+                        this.showMessage('WordPress source updated successfully!');
+                        this.showEditWordPressForm = false;
+                        this.resetEditWordPressForm();
+                        await this.loadSources();
+                    } catch (error) {
+                        this.showMessage('Failed to update WordPress source', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                editWordPress(source) {
+                    this.editWordPressSource = {
+                        id: source.id,
+                        siteUrl: source.siteUrl,
+                        siteName: source.siteName,
+                        description: source.description || '',
+                        crawlIntervalHours: source.crawlIntervalHours,
+                        apiKey: source.apiKey || ''
+                    };
+                    this.showEditWordPressForm = true;
+                },
+
+                async testWordPressSource(source) {
+                    this.isLoading = true;
+                    try {
+                        const result = await this.apiCall(`/admin/crawl/wordpress/${source.id}`, { method: 'POST' });
+                        
+                        if (result.summary) {
+                            const summary = result.summary;
+                            let message = `Test crawl for ${source.siteName}: ${result.data.newPosts} new posts`;
+                            
+                            if (result.data.skippedPosts > 0) {
+                                message += `, ${result.data.skippedPosts} skipped`;
+                            }
+                            
+                            if (result.data.errors.length > 0) {
+                                message += `, ${result.data.errors.length} errors`;
+                                this.showMessage(message, 'error');
+                            } else if (result.data.warnings.length > 0) {
+                                message += `, ${result.data.warnings.length} warnings`;
+                                this.showMessage(message, 'error');
+                            } else {
+                                this.showMessage(message);
+                            }
+                            
+                            // Show API capabilities if available
+                            if (summary.apiHealth && summary.apiHealth.capabilities.length > 0) {
+                                console.log(`${source.siteName} API capabilities:`, summary.apiHealth.capabilities);
+                            }
+                        } else {
+                            this.showMessage(`Test crawl completed for ${source.siteName}`);
+                        }
+                        
+                        await this.loadSources();
+                    } catch (error) {
+                        this.showMessage(`Failed to test ${source.siteName}`, 'error');
                     } finally {
                         this.isLoading = false;
                     }
@@ -298,6 +402,10 @@
 
                 resetWordPressForm() {
                     this.newWordPressSource = { siteUrl: '', siteName: '', description: '', crawlIntervalHours: 12 };
+                },
+
+                resetEditWordPressForm() {
+                    this.editWordPressSource = { id: null, siteUrl: '', siteName: '', description: '', crawlIntervalHours: 12, apiKey: '' };
                 },
 
                 showMessage(text, type = 'success') {
@@ -595,6 +703,7 @@
                     
                     <!-- Add WordPress Source Form -->
                     <div x-show="showAddWordPressForm" class="mb-4 p-4 bg-gray-50 rounded">
+                        <h4 class="font-medium mb-3">Add New WordPress Source</h4>
                         <div class="space-y-3">
                             <input x-model="newWordPressSource.siteUrl" 
                                    placeholder="Site URL (e.g., https://example.com)" 
@@ -621,26 +730,84 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Edit WordPress Source Form -->
+                    <div x-show="showEditWordPressForm" class="mb-4 p-4 bg-blue-50 rounded">
+                        <h4 class="font-medium mb-3">Edit WordPress Source</h4>
+                        <div class="space-y-3">
+                            <input x-model="editWordPressSource.siteUrl" 
+                                   placeholder="Site URL (e.g., https://example.com)" 
+                                   class="w-full px-3 py-2 border rounded">
+                            <input x-model="editWordPressSource.siteName" 
+                                   placeholder="Site name" 
+                                   class="w-full px-3 py-2 border rounded">
+                            <input x-model="editWordPressSource.description" 
+                                   placeholder="Description" 
+                                   class="w-full px-3 py-2 border rounded">
+                            <input x-model="editWordPressSource.crawlIntervalHours" 
+                                   type="number" 
+                                   placeholder="Crawl interval (hours)" 
+                                   class="w-full px-3 py-2 border rounded">
+                            <input x-model="editWordPressSource.apiKey" 
+                                   placeholder="API Key (optional)" 
+                                   class="w-full px-3 py-2 border rounded">
+                            <div class="flex space-x-2">
+                                <button @click="updateWordPressSource()" 
+                                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                                    Update Source
+                                </button>
+                                <button @click="showEditWordPressForm = false; resetEditWordPressForm()" 
+                                        class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="space-y-2 max-h-64 overflow-y-auto">
                         <template x-for="source in wordpressSources">
                             <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
-                                <div>
-                                    <p class="font-medium" x-text="source.siteName"></p>
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-2">
+                                        <p class="font-medium" x-text="source.siteName"></p>
+                                        <span x-show="source.isActive" class="text-green-500">
+                                            <i class="fas fa-circle text-xs"></i>
+                                        </span>
+                                        <span x-show="!source.isActive" class="text-gray-400">
+                                            <i class="fas fa-circle text-xs"></i>
+                                        </span>
+                                    </div>
                                     <p class="text-sm text-gray-600" x-text="source.siteUrl"></p>
-                                    <p class="text-xs text-gray-500">
-                                        Posts: <span x-text="source.totalPostsCrawled"></span> | 
-                                        Interval: <span x-text="source.crawlIntervalHours"></span>h
-                                    </p>
+                                    <p class="text-xs text-gray-400" x-text="source.description" x-show="source.description"></p>
+                                    <div class="flex items-center space-x-4 text-xs text-gray-500 mt-1">
+                                        <span>Posts: <span x-text="source.totalPostsCrawled"></span></span>
+                                        <span>Interval: <span x-text="source.crawlIntervalHours"></span>h</span>
+                                        <span x-show="source.apiKey" class="text-green-600">
+                                            <i class="fas fa-key"></i> API Key
+                                        </span>
+                                        <span x-show="source.lastCrawledAt" class="text-blue-600" 
+                                              :title="'Last crawled: ' + new Date(source.lastCrawledAt).toLocaleString()">
+                                            <i class="fas fa-clock"></i> 
+                                            <span x-text="source.lastCrawledAt ? new Date(source.lastCrawledAt).toLocaleDateString() : 'Never'"></span>
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="flex space-x-2">
+                                <div class="flex flex-wrap gap-1">
+                                    <button @click="editWordPress(source)" 
+                                            class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs">
+                                        <i class="fas fa-edit mr-1"></i>Edit
+                                    </button>
+                                    <button @click="testWordPressSource(source)" 
+                                            class="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded text-xs">
+                                        <i class="fas fa-vial mr-1"></i>Test
+                                    </button>
                                     <button @click="toggleWordPressSource(source)" 
                                             :class="source.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'"
-                                            class="text-white px-3 py-1 rounded text-sm">
+                                            class="text-white px-2 py-1 rounded text-xs">
                                         <span x-text="source.isActive ? 'Disable' : 'Enable'"></span>
                                     </button>
                                     <button @click="deleteWordPressSource(source.id)" 
-                                            class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm">
+                                            class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">
                                         Delete
                                     </button>
                                 </div>
