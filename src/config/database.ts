@@ -10,7 +10,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER || 'cryptouser',
   password: process.env.DB_PASSWORD || 'cryptopass123',
   database: process.env.DB_NAME || 'cryptotraders',
-  synchronize: process.env.NODE_ENV === 'development',
+  synchronize: true, // TODO: Remove this in production
   logging: process.env.NODE_ENV === 'development',
   entities: [
     process.env.NODE_ENV === 'production' 
