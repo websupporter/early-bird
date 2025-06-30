@@ -1,5 +1,6 @@
 import { RedditCrawlerService, CrawlResult } from './RedditCrawlerService';
 import { WordPressCrawlerService, WordPressCrawlResult } from './WordPressCrawlerService';
+import { RssFeedCrawlerService, RssCrawlResult } from './RssFeedCrawlerService';
 import { BinanceApiService } from '../services/BinanceApiService';
 import { GreedFearIndexService } from '../services/GreedFearIndexService';
 // import { logger } from '../config/logger';
@@ -20,6 +21,12 @@ export interface MasterCrawlResult {
     totalUsers: number;
     errors: string[];
   };
+  rssFeeds: {
+    totalSources: number;
+    totalArticles: number;
+    newArticles: number;
+    errors: string[];
+  };
   binance: {
     symbolsUpdated: number;
     errors: string[];
@@ -36,12 +43,14 @@ export interface MasterCrawlResult {
 export class MasterCrawlerService {
   private redditCrawler: RedditCrawlerService;
   private wordpressCrawler: WordPressCrawlerService;
+  private rssFeedCrawler: RssFeedCrawlerService;
   private binanceService: BinanceApiService;
   private greedFearService: GreedFearIndexService;
 
   constructor() {
     this.redditCrawler = new RedditCrawlerService();
     this.wordpressCrawler = new WordPressCrawlerService();
+    this.rssFeedCrawler = new RssFeedCrawlerService();
     this.binanceService = new BinanceApiService();
     this.greedFearService = new GreedFearIndexService();
   }
@@ -66,6 +75,12 @@ export class MasterCrawlerService {
         totalUsers: 0,
         errors: []
       },
+      rssFeeds: {
+        totalSources: 0,
+        totalArticles: 0,
+        newArticles: 0,
+        errors: []
+      },
       binance: {
         symbolsUpdated: 0,
         errors: []
@@ -79,9 +94,10 @@ export class MasterCrawlerService {
     };
 
     // Run all crawls in parallel for efficiency
-    const [redditResults, wordpressResults, binanceResult, greedFearResult] = await Promise.allSettled([
+    const [redditResults, wordpressResults, rssResults, binanceResult, greedFearResult] = await Promise.allSettled([
       this.crawlReddit(),
       this.crawlWordPress(),
+      this.crawlRssFeeds(),
       this.updateBinanceData(),
       this.updateGreedFearIndex()
     ]);
@@ -109,6 +125,17 @@ export class MasterCrawlerService {
       result.wordpress.errors.push(wordpressResults.reason?.message || 'WordPress crawl failed');
     }
 
+    // Process RSS Feed results
+    if (rssResults.status === 'fulfilled') {
+      const rssData = rssResults.value;
+      result.rssFeeds.totalSources = rssData.length;
+      result.rssFeeds.totalArticles = rssData.reduce((sum: number, r: RssCrawlResult) => sum + r.articlesProcessed, 0);
+      result.rssFeeds.newArticles = rssData.reduce((sum: number, r: RssCrawlResult) => sum + r.newArticles, 0);
+      result.rssFeeds.errors = rssData.flatMap((r: RssCrawlResult) => r.errors);
+    } else {
+      result.rssFeeds.errors.push(rssResults.reason?.message || 'RSS feed crawl failed');
+    }
+
     // Process Binance results
     if (binanceResult.status === 'fulfilled') {
       result.binance.symbolsUpdated = binanceResult.value;
@@ -126,7 +153,7 @@ export class MasterCrawlerService {
 
     // Calculate totals
     result.totalErrors = result.reddit.errors.length + result.wordpress.errors.length + 
-                        result.binance.errors.length + result.greedFear.errors.length;
+                        result.rssFeeds.errors.length + result.binance.errors.length + result.greedFear.errors.length;
     result.isSuccessful = result.totalErrors === 0;
     result.endTime = new Date();
 
@@ -135,6 +162,7 @@ export class MasterCrawlerService {
       redditPosts: result.reddit.totalPosts,
       redditComments: result.reddit.totalComments,
       wordpressPosts: result.wordpress.totalPosts,
+      rssArticles: result.rssFeeds.newArticles,
       binanceSymbols: result.binance.symbolsUpdated,
       greedFearUpdated: result.greedFear.updated,
       totalErrors: result.totalErrors
@@ -159,6 +187,16 @@ export class MasterCrawlerService {
       return await this.wordpressCrawler.crawlAllActiveSources();
     } catch (error) {
       console.error('WordPress crawl failed', error);
+      throw error;
+    }
+  }
+
+  private async crawlRssFeeds(): Promise<RssCrawlResult[]> {
+    try {
+      console.log('Starting RSS feed crawl');
+      return await this.rssFeedCrawler.crawlAllFeeds();
+    } catch (error) {
+      console.error('RSS feed crawl failed', error);
       throw error;
     }
   }
