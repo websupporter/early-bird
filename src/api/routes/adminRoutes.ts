@@ -3,13 +3,16 @@ import { RepositoryFactory } from '../../repositories';
 import { MasterCrawlerService } from '../../crawlers/MasterCrawlerService';
 import { RedditCrawlerService } from '../../crawlers/RedditCrawlerService';
 import { WordPressCrawlerService } from '../../crawlers/WordPressCrawlerService';
+import { RssFeedCrawlerService } from '../../crawlers/RssFeedCrawlerService';
 
 const router = Router();
 const redditSourceRepo = RepositoryFactory.getRedditSourceRepository();
 const wordpressSourceRepo = RepositoryFactory.getWordPressSourceRepository();
+const feedSourceRepo = RepositoryFactory.getFeedSourceRepository();
 const crawlerService = new MasterCrawlerService();
 const redditCrawler = new RedditCrawlerService();
 const wordpressCrawler = new WordPressCrawlerService();
+const rssFeedCrawler = new RssFeedCrawlerService();
 
 // Reddit Sources Management
 router.get('/reddit/sources', async (_req: Request, res: Response) => {
@@ -221,6 +224,117 @@ router.delete('/wordpress/sources/:id', async (req: Request, res: Response) => {
   }
 });
 
+// RSS Feed Sources Management
+router.get('/feed/sources', async (_req: Request, res: Response) => {
+  try {
+    const sources = await feedSourceRepo.findAll();
+    res.json({ success: true, data: sources });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get RSS feed sources',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+router.post('/feed/sources', async (req: Request, res: Response) => {
+  try {
+    const { feedUrl, name, websiteUrl, description, category, language, crawlIntervalMinutes } = req.body;
+    
+    if (!feedUrl || !name) {
+      res.status(400).json({
+        success: false,
+        error: 'Feed URL and name are required'
+      });
+      return;
+    }
+
+    // Check if source already exists
+    const existing = await feedSourceRepo.existsByFeedUrl(feedUrl);
+    if (existing) {
+      res.status(400).json({
+        success: false,
+        error: 'RSS feed source already exists'
+      });
+      return;
+    }
+
+    const source = await feedSourceRepo.create({
+      feedUrl,
+      name,
+      websiteUrl: websiteUrl || '',
+      description: description || '',
+      category: category || 'General',
+      language: language || 'en',
+      isActive: true,
+      crawlIntervalMinutes: crawlIntervalMinutes || 60,
+      totalArticlesCrawled: 0,
+      averageSentiment: 0,
+      reliabilityScore: 0,
+      consecutiveFailures: 0,
+      crawlErrors: undefined,
+      etag: undefined,
+      lastModified: undefined
+    });
+
+    res.status(201).json({ success: true, data: source });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create RSS feed source',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+router.put('/feed/sources/:id', async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    const updates = req.body;
+    
+    const source = await feedSourceRepo.update(id, updates);
+    if (!source) {
+      res.status(404).json({
+        success: false,
+        error: 'RSS feed source not found'
+      });
+      return;
+    }
+
+    res.json({ success: true, data: source });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update RSS feed source',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+router.delete('/feed/sources/:id', async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    const deleted = await feedSourceRepo.delete(id);
+    
+    if (!deleted) {
+      res.status(404).json({
+        success: false,
+        error: 'RSS feed source not found'
+      });
+      return;
+    }
+
+    res.json({ success: true, message: 'RSS feed source deleted' });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete RSS feed source',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Crawler Management
 router.post('/crawl/full', async (_req: Request, res: Response) => {
   try {
@@ -335,18 +449,62 @@ router.post('/crawl/market', async (_req: Request, res: Response) => {
   }
 });
 
+router.post('/crawl/rss', async (_req: Request, res: Response) => {
+  try {
+    const results = await rssFeedCrawler.crawlAllFeeds();
+    
+    // Calculate summary statistics
+    const summary = {
+      totalSources: results.length,
+      totalArticles: results.reduce((sum, r) => sum + r.articlesProcessed, 0),
+      newArticles: results.reduce((sum, r) => sum + r.newArticles, 0),
+      totalErrors: results.reduce((sum, r) => sum + r.errors.length, 0),
+      sourcesWithErrors: results.filter(r => r.errors.length > 0).length
+    };
+
+    res.json({ 
+      success: true, 
+      data: results,
+      summary
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to crawl RSS feeds',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+router.post('/crawl/rss/:id', async (req: Request, res: Response) => {
+  try {
+    const sourceId = parseInt(req.params.id);
+    const result = await rssFeedCrawler.crawlFeedById(sourceId);
+    
+    res.json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to crawl RSS feed source',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // System Statistics
 router.get('/stats', async (_req: Request, res: Response) => {
   try {
-    const [redditSources, wordpressSources] = await Promise.all([
+    const [redditSources, wordpressSources, feedSources] = await Promise.all([
       redditSourceRepo.findActiveSources(),
-      wordpressSourceRepo.findActiveSources()
+      wordpressSourceRepo.findActiveSources(),
+      feedSourceRepo.findActiveSources()
     ]);
 
     const stats = {
       redditSources: redditSources.length,
       wordpressSources: wordpressSources.length,
-      totalSources: redditSources.length + wordpressSources.length,
+      feedSources: feedSources.length,
+      totalSources: redditSources.length + wordpressSources.length + feedSources.length,
       topRedditSources: redditSources
         .sort((a, b) => b.totalPostsCrawled - a.totalPostsCrawled)
         .slice(0, 5)
@@ -354,7 +512,11 @@ router.get('/stats', async (_req: Request, res: Response) => {
       topWordPressSources: wordpressSources
         .sort((a, b) => b.totalPostsCrawled - a.totalPostsCrawled)
         .slice(0, 5)
-        .map(s => ({ name: s.siteName, posts: s.totalPostsCrawled }))
+        .map(s => ({ name: s.siteName, posts: s.totalPostsCrawled })),
+      topFeedSources: feedSources
+        .sort((a, b) => b.totalArticlesCrawled - a.totalArticlesCrawled)
+        .slice(0, 5)
+        .map(s => ({ name: s.name, articles: s.totalArticlesCrawled }))
     };
 
     res.json({ success: true, data: stats });
