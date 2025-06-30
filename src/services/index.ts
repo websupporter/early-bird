@@ -1,18 +1,24 @@
 // API Services
 export { RedditApiService } from './RedditApiService';
 export { WordPressApiService } from './WordPressApiService';
+export { RssFeedApiService } from './RssFeedApiService';
+export { KeywordService } from './KeywordService';
 export { BinanceApiService } from './BinanceApiService';
 export { GreedFearIndexService } from './GreedFearIndexService';
 
 // Type exports
 export type { RedditPost, RedditComment } from './RedditApiService';
 export type { WordPressPost, WordPressUser, WordPressCategory, WordPressTag } from './WordPressApiService';
+export type { RssFeedItem, RssFeedData } from './RssFeedApiService';
+export type { KeywordAnalysisResult, ContentKeywordLink } from './KeywordService';
 export type { BinanceKline, BinanceTicker24hr, BinanceInterval } from './BinanceApiService';
 export type { GreedFearData } from './GreedFearIndexService';
 
 // Imports for internal use
 import { RedditApiService } from './RedditApiService';
 import { WordPressApiService } from './WordPressApiService';
+import { RssFeedApiService } from './RssFeedApiService';
+import { KeywordService } from './KeywordService';
 import { BinanceApiService } from './BinanceApiService';
 import { GreedFearIndexService } from './GreedFearIndexService';
 
@@ -47,6 +53,20 @@ export class ServiceFactory {
       this.instances.set('GreedFearIndexService', new GreedFearIndexService());
     }
     return this.instances.get('GreedFearIndexService');
+  }
+
+  static getRssFeedApiService(): RssFeedApiService {
+    if (!this.instances.has('RssFeedApiService')) {
+      this.instances.set('RssFeedApiService', new RssFeedApiService());
+    }
+    return this.instances.get('RssFeedApiService');
+  }
+
+  static getKeywordService(): KeywordService {
+    if (!this.instances.has('KeywordService')) {
+      this.instances.set('KeywordService', new KeywordService());
+    }
+    return this.instances.get('KeywordService');
   }
 
   static clearInstances(): void {
