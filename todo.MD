@@ -40,6 +40,14 @@
 [x] Create WordPressContentRepository
 [x] Create WordPressSourceRepository
 
+### RSS Feeds
+[ ] Create table to store websites from RSS Feeds
+[ ] Create table for feeds to crawl
+[ ] Create FeedContent Entity
+[ ] Create FeedSource Entity
+[ ] Create FeedContentRepository
+[ ] Create FeedSourceRepository
+
 ## ✅ COMPLETED - External API Integration
 ### Reddit API
 [x] Reddit API service with snoowrap integration
