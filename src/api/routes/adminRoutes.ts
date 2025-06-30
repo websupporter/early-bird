@@ -264,8 +264,24 @@ router.post('/crawl/reddit/:id', async (req: Request, res: Response) => {
 
 router.post('/crawl/wordpress', async (_req: Request, res: Response) => {
   try {
-    const result = await wordpressCrawler.crawlAllActiveSources();
-    res.json({ success: true, data: result });
+    const results = await wordpressCrawler.crawlAllActiveSources();
+    
+    // Calculate summary statistics
+    const summary = {
+      totalSources: results.length,
+      totalNewPosts: results.reduce((sum, r) => sum + r.newPosts, 0),
+      totalSkippedPosts: results.reduce((sum, r) => sum + r.skippedPosts, 0),
+      totalErrors: results.reduce((sum, r) => sum + r.errors.length, 0),
+      totalWarnings: results.reduce((sum, r) => sum + r.warnings.length, 0),
+      sourcesWithErrors: results.filter(r => r.errors.length > 0).length,
+      apiCapabilities: [...new Set(results.flatMap(r => r.apiCapabilities))]
+    };
+
+    res.json({ 
+      success: true, 
+      data: results,
+      summary
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -279,7 +295,24 @@ router.post('/crawl/wordpress/:id', async (req: Request, res: Response) => {
   try {
     const sourceId = parseInt(req.params.id);
     const result = await wordpressCrawler.crawlSource(sourceId);
-    res.json({ success: true, data: result });
+    
+    // Add helpful summary for single source
+    const summary = {
+      hasErrors: result.errors.length > 0,
+      hasWarnings: result.warnings.length > 0,
+      processingRate: result.newPosts / Math.max(result.newPosts + result.skippedPosts, 1),
+      duration: result.endTime.getTime() - result.startTime.getTime(),
+      apiHealth: {
+        isConnected: result.apiCapabilities.length > 0,
+        capabilities: result.apiCapabilities
+      }
+    };
+
+    res.json({ 
+      success: true, 
+      data: result,
+      summary
+    });
   } catch (error) {
     res.status(500).json({
       success: false,

@@ -11,6 +11,7 @@ export { RedditSourceRepository } from './RedditSourceRepository';
 // WordPress Repositories
 export { WordPressContentRepository } from './WordPressContentRepository';
 export { WordPressSourceRepository } from './WordPressSourceRepository';
+export { WordPressUserRepository } from './WordPressUserRepository';
 
 // Import für interne Verwendung
 import { UserRepository } from './UserRepository';
@@ -18,6 +19,7 @@ import { RedditContentRepository } from './RedditContentRepository';
 import { RedditSourceRepository } from './RedditSourceRepository';
 import { WordPressContentRepository } from './WordPressContentRepository';
 import { WordPressSourceRepository } from './WordPressSourceRepository';
+import { WordPressUserRepository } from './WordPressUserRepository';
 
 // Repository Factory für einfache Instanziierung
 export class RepositoryFactory {
@@ -56,6 +58,13 @@ export class RepositoryFactory {
       this.instances.set('WordPressSourceRepository', new WordPressSourceRepository());
     }
     return this.instances.get('WordPressSourceRepository');
+  }
+
+  static getWordPressUserRepository(): WordPressUserRepository {
+    if (!this.instances.has('WordPressUserRepository')) {
+      this.instances.set('WordPressUserRepository', new WordPressUserRepository());
+    }
+    return this.instances.get('WordPressUserRepository');
   }
 
   // Methode zum Zurücksetzen aller Instanzen (nützlich für Tests)
